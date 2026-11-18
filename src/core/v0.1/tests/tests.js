@@ -128,7 +128,7 @@ export async function runTests({ load, policies }) {
     const p = core.createMockProvider({ normalise: core.normaliseReply, script: () => toolCallReply('get_latest', '{"source_id":"ipma-uv"}') });
     const ran = [];
     const r = await core.runAgent({ provider: p, model: 'm', policy: { ...analyst, limits: { max_steps: 2 } }, prompt: 'x', tools: mockTools(ran) });
-    eq(p.calls.length, 2, 'two model turns'); eq(p.calls[1].tools, [], 'no tools on the last turn'); eq(ran.length, 1, 'one tool run');
+    eq(p.calls.length, 2, 'two model turns'); eq(p.calls[1].toolChoice, 'none', 'tool_choice none on the last turn'); eq(ran.length, 1, 'one tool run');
     ok(/step limit/.test(r.stopped)); eq(r.output, '');
     const run = await core.runEval({ provider: (p.reset(), p), policy: { ...analyst, limits: { max_steps: 2 }, checks: [] }, suite: { id: 's', cases: [{ id: 'c' }] }, models: ['m'] });
     ok(!run.results[0].pass, 'a step-limited run fails in an eval');

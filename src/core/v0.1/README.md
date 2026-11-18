@@ -31,7 +31,7 @@ An Agent Behaviour Policy is a JSON object:
 | `tools.allow`, `tools.deny` | tool names, or `*`; deny wins |
 | `untrusted.wrap` | wrap tool and web results in `<untrusted-data>` markers and tell the model they are data |
 | `untrusted.on_injection` | `flag` (the only value in 0.1): phrases that read as instructions are flagged in the trace; the text still reaches the model, inside the markers |
-| `limits.max_steps` | model turns (default 6); the last turn offers no tools, so the model must answer, and a run that still asks for tools stops with `step limit` |
+| `limits.max_steps` | model turns (default 6); the last turn sends `tool_choice: "none"`, so the model must answer, and a run that still asks for tools stops with `step limit` |
 | `limits.max_tool_calls` | optional cap on tool calls in a run |
 | `limits.max_output_tokens` | output cap per model call |
 | `checks` | list of `{ id, kind, value, flags, why }` |

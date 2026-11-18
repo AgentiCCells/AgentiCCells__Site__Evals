@@ -11,12 +11,12 @@ export async function runAgent({ provider, model, policy, prompt, history = [], 
   const step = (s) => { trace.steps.push(s); onStep?.(s, trace); };
   const maxSteps = policy.limits?.max_steps || 6;
   const outCap = maxTokens || policy.limits?.max_output_tokens;
-  // limits.max_steps is the number of model turns. The last turn offers no tools, so the model must answer.
+  // limits.max_steps is the number of model turns. On the last turn tool_choice is "none", so the model must answer.
   let final = '', stopped = null, status = 0, calls = 0;
   for (let i = 0; i < maxSteps; i++) {
     const last = i === maxSteps - 1;
     let reply;
-    try { reply = await provider.chat({ model, messages, tools: last ? [] : allowed, maxTokens: outCap, temperature, signal }); }
+    try { reply = await provider.chat({ model, messages, tools: allowed, toolChoice: last && allowed.length ? 'none' : undefined, maxTokens: outCap, temperature, signal }); }
     catch (e) { stopped = `error: ${e.message}`; status = e.status || 0; step({ type: 'error', text: e.message, status }); break; }
     trace.model = reply.model || model; trace.mocked ||= !!reply.mocked; trace.ms += reply.ms || 0;
     trace.usage.input += reply.usage.input; trace.usage.output += reply.usage.output;

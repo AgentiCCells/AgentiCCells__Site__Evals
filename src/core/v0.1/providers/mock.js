@@ -12,7 +12,7 @@ export function createMockProvider({ models = [], script, normalise, name = 'Moc
     calls,
     async listModels() { return models; },
     async chat(req) {
-      calls.push(JSON.parse(JSON.stringify({ model: req.model, messages: req.messages, tools: (req.tools || []).map((t) => t.name) })));
+      calls.push(JSON.parse(JSON.stringify({ model: req.model, messages: req.messages, tools: (req.tools || []).map((t) => t.name), toolChoice: req.toolChoice })));
       const wire = await script(req, turn++);
       if (wire instanceof Error) throw wire;
       const reply = normalise ? normalise(wire, 1) : wire;
