@@ -45,5 +45,8 @@ export async function runAgent({ provider, model, policy, prompt, history = [], 
     if (i === maxSteps) { stopped = `step limit ${maxSteps} reached`; step({ type: 'stopped', text: stopped }); }
   }
   const verdict = checkOutput(policy, final, trace, { secrets });
-  return { output: final, trace, verdict, stopped };
+  // on_violation "block": a failing answer is withheld; the trace still shows what the model said.
+  const blocked = !verdict.pass && policy.on_violation === 'block';
+  if (blocked) step({ type: 'stopped', text: 'answer withheld: it failed the policy checks (on_violation: block)' });
+  return { output: blocked ? '' : final, withheld: blocked ? final : null, blocked, trace, verdict, stopped };
 }

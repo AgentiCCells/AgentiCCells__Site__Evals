@@ -8,7 +8,7 @@ export function el(tag, attrs = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
     if (v === false || v === null || v === undefined) continue;
-    if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+    if (k.startsWith('on')) { if (typeof v === 'function') e.addEventListener(k.slice(2), v); continue; }
     else if (k === 'class') e.className = v;
     else e.setAttribute(k, v === true ? '' : String(v));
   }

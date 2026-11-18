@@ -13,6 +13,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<script src="/assets/frame.js"></script>
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="alternate" type="text/markdown" href="/index.md">
 </head>
@@ -23,7 +24,7 @@
 <p class="lede">Plain ES modules, no build step, no third-party code. Pin a version: a published version never changes in place.</p>
 <pre>import { createOpenRouter, createKeyStore, runAgent, runEval, promptugalTools, loadPolicy }
   from 'https://evals.agenticcells.site/core/v0.1/index.js';</pre>
-<p>Sites in the family copy or import a pinned version. The contract is in <a href="/core/v0.1/README.md">core/v0.1/README.md</a>; the tests run in your browser at <a href="/core/v0.1/tests/">core/v0.1/tests/</a>.</p>
+<p>Sites in the family copy or import a pinned version. Within v0.1 only fixes land; anything that changes a contract goes to v0.2. A site that needs bytes that never change should copy the files. The contract is in <a href="/core/v0.1/README.md">core/v0.1/README.md</a>; the tests run in your browser at <a href="/core/v0.1/tests/">core/v0.1/tests/</a>.</p>
 <h2>Modules in v0.1</h2>
 <div class="tablewrap"><table>
 <tr><th>Module</th><th>What it does</th></tr>

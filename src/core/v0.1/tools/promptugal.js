@@ -27,8 +27,9 @@ export function shrink(v, { items = 8, chars = 300, depth = 0 } = {}) {
 export function promptugalTools({ fetchImpl = (...a) => fetch(...a), maxChars = 6000 } = {}) {
   let index = null;
   const get = async (url) => {
-    if (!url.startsWith(`${DATA_HOST}/`)) throw new Error('only data.promptugal.news may be read');
-    const r = await fetchImpl(url);
+    let u; try { u = new URL(url); } catch { throw new Error('only data.promptugal.news may be read'); }
+    if (u.origin !== DATA_HOST) throw new Error('only data.promptugal.news may be read');
+    const r = await fetchImpl(u.href, { redirect: 'error' });
     if (!r.ok) throw new Error(`HTTP ${r.status} from ${url}`);
     return r.json();
   };

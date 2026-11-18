@@ -43,7 +43,7 @@ $('run').addEventListener('click', async () => {
   try {
     const r = await core.runAgent({ provider, model: mocked ? 'nvidia/nemotron-3.5-lightning:free' : model, policy, prompt: $('prompt').value, tools, secrets: [store.get()],
       onStep: (s, trace) => box.replaceChildren(renderTrace(trace)) });
-    out.append(el('h2', {}, 'Answer'), el('p', {}, r.output || '(no answer)'),
+    out.append(el('h2', {}, 'Answer'), el('p', {}, r.blocked ? 'Withheld: the answer failed the policy checks and this policy blocks on a violation.' : (r.output || '(no answer)')),
       el('h2', {}, `Policy checks: ${r.verdict.pass ? 'pass' : 'fail'}`), renderVerdict(r.verdict),
       el('p', { class: 'muted' }, `${r.trace.mocked ? 'Recorded reply (mock). ' : 'Live. '}${r.trace.usage.input} tokens in, ${r.trace.usage.output} out, ${core.formatUsd(r.trace.usage.costKnown ? r.trace.usage.cost : null)}, ${r.trace.ms} ms of model time.${r.trace.flags.length ? ` ${r.trace.flags.length} tool result(s) flagged for possible instructions.` : ''}`));
     $('status').textContent = r.stopped || 'Done.';
