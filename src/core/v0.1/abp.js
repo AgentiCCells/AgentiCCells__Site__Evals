@@ -32,6 +32,12 @@ export function validatePolicy(p) {
   return { ok: errors.length === 0, errors };
 }
 
+// Validate a list of checks on its own (for eval suite cases).
+export function validateChecks(checks) {
+  const v = validatePolicy({ abp: ABP_VERSION, id: 'abp:case@0.1', name: 'case', instructions: [], tools: { allow: [] }, checks });
+  return { ok: v.ok, errors: v.errors };
+}
+
 // The system prompt a policy gives the model.
 export function systemPrompt(p) {
   const lines = [`You are working under the Agent Behaviour Policy "${p.name}" (${p.id}).`, 'Follow these instructions:'];
@@ -58,8 +64,8 @@ export function filterTools(p, tools) {
 // Check one tool call before it runs. state.calls counts the calls so far.
 export function checkToolCall(p, call, state = { calls: 0 }) {
   if (!toolAllowed(p, call.name)) return { ok: false, reason: `tool ${call.name} is not allowed by ${p.id}` };
-  const max = p.limits?.max_steps;
-  if (max && state.calls >= max) return { ok: false, reason: `step limit ${max} reached` };
+  const max = p.limits?.max_tool_calls;
+  if (max && state.calls >= max) return { ok: false, reason: `tool call limit ${max} reached` };
   return { ok: true };
 }
 
@@ -111,8 +117,12 @@ export function containsSecret(text, extra = []) {
 // Check the final output and the trace against the policy. trace.toolCalls is a list of { name }.
 // Returns { pass, results: [{ id, kind, pass, why, detail }] }.
 export function checkOutput(p, output, trace = {}, opts = {}) {
-  const text = String(output ?? '');
-  const called = (trace.toolCalls || []).map((c) => c.name);
+  // Models often write hyphen look-alikes (U+2010 to U+2013, U+2212) in ids such as ipma-warnings.
+  // Pattern checks see them as ASCII hyphens. The em dash (U+2014) is left alone.
+  const text = String(output ?? '').replace(/[\u2010-\u2013\u2212]/g, '-');
+  // Only calls that ran count: a refused call is not a call made.
+  const called = (trace.toolCalls || []).filter((c) => c.ran !== false).map((c) => c.name);
+  const attempted = (trace.toolCalls || []).map((c) => c.name);
   const results = [];
   for (const c of p.checks || []) {
     let pass = true, detail = '';
@@ -123,7 +133,7 @@ export function checkOutput(p, output, trace = {}, opts = {}) {
       case 'max_chars': pass = text.length <= c.value; detail = `${text.length} characters`; break;
       case 'no_secret': pass = !containsSecret(text, opts.secrets || []); break;
       case 'must_call_tool': pass = c.value === '*' ? called.length > 0 : called.includes(c.value); detail = called.join(', ') || 'no tool calls'; break;
-      case 'must_not_call_tool': pass = c.value === '*' ? called.length === 0 : !called.includes(c.value); detail = called.join(', ') || 'no tool calls'; break;
+      case 'must_not_call_tool': pass = c.value === '*' ? attempted.length === 0 : !attempted.includes(c.value); detail = attempted.join(', ') || 'no tool calls'; break;
       case 'json': try { JSON.parse(text); } catch { pass = false; detail = 'not JSON'; } break;
       default: pass = false; detail = 'unknown check';
     }

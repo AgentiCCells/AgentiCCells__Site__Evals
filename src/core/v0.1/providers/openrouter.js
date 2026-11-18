@@ -11,6 +11,8 @@
 //   (optional key_label, limit, expiration, state), then POST https://openrouter.ai/api/v1/auth/keys
 //   with { code, code_verifier, code_challenge_method: "S256" } returns { key }.
 // - Free models: ids ending ":free", and the router "openrouter/free".
+// - App attribution headers: HTTP-Referer and X-OpenRouter-Title (X-Title also accepted), both optional.
+// - Reasoning models: reasoning_details is passed back on the assistant message in tool loops.
 // Browser CORS: both endpoints answer Access-Control-Allow-Origin: * (checked 2026-11-18).
 
 import { redact } from '../keys.js';
@@ -52,6 +54,7 @@ export function toWireTools(tools = []) {
 
 // Turn a chat completion into the core's shape.
 export function normaliseReply(j, ms = 0) {
+  if (!j || typeof j !== 'object') throw new ProviderError('the reply was not JSON', { status: 0 });
   const ch = j.choices?.[0] || {};
   const msg = ch.message || {};
   const toolCalls = (msg.tool_calls || []).map((c) => {
@@ -70,7 +73,8 @@ export function normaliseReply(j, ms = 0) {
     id: j.id || null,
     usage: { input: u.prompt_tokens || 0, output: u.completion_tokens || 0, reasoning: u.completion_tokens_details?.reasoning_tokens || 0, cost: typeof u.cost === 'number' ? u.cost : null },
     ms,
-    message: { role: 'assistant', content: msg.content ?? null, ...(msg.tool_calls ? { tool_calls: msg.tool_calls } : {}) },
+    // reasoning_details is passed back in tool loops, as OpenRouter's reasoning docs ask.
+    message: { role: 'assistant', content: msg.content ?? null, ...(msg.tool_calls ? { tool_calls: msg.tool_calls } : {}), ...(msg.reasoning_details ? { reasoning_details: msg.reasoning_details } : {}) },
   };
 }
 

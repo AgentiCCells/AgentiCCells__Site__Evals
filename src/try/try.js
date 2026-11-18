@@ -28,7 +28,8 @@ $('keys').append(keyPanel({ store, label: 'OpenRouter key', onChange: loadModels
 loadModels();
 
 $('run').addEventListener('click', async () => {
-  const policy = await core.loadPolicy(`/policies/${$('policy').value}`);
+  let policy;
+  try { policy = await core.loadPolicy(`/policies/${$('policy').value}`); } catch (e) { $('status').textContent = e.message; return; }
   const model = $('model').value;
   const mocked = model === 'mock';
   const provider = mocked
@@ -39,7 +40,7 @@ $('run').addEventListener('click', async () => {
   const out = $('out');
   out.replaceChildren(el('h2', {}, 'Steps'));
   const box = el('div'); out.append(box);
-  $('run').disabled = true; $('status').textContent = mocked ? 'Replaying the recorded reply, with live data tools.' : `Calling ${model}.`;
+  $('run').disabled = true; $('status').textContent = mocked ? 'Replaying model replies recorded on 18 November 2026. The tools read today\'s data, but the answer is the recorded one.' : `Calling ${model}.`;
   try {
     const r = await core.runAgent({ provider, model: mocked ? 'nvidia/nemotron-3.5-lightning:free' : model, policy, prompt: $('prompt').value, tools, secrets: [store.get()],
       onStep: (s, trace) => box.replaceChildren(renderTrace(trace)) });

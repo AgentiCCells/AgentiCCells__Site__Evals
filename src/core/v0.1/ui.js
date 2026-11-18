@@ -50,7 +50,7 @@ export function renderVerdict(verdict) {
 // A key panel: paste a key, choose whether to remember it, forget it. Optional sign-in button.
 export function keyPanel({ store, label = 'API key', onChange, signIn, warning }) {
   const input = el('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Paste a key', 'aria-label': label });
-  const remember = el('input', { type: 'checkbox', id: 'acc-remember' });
+  const remember = el('input', { type: 'checkbox' });
   const status = el('span', { class: 'acc-muted', 'aria-live': 'polite' });
   const show = () => { status.textContent = store.has() ? `Key set (${store.masked()})${store.remembered() ? ', remembered in this browser' : ', in memory only'}` : 'No key set'; };
   const use = el('button', { type: 'button', onclick: () => { try { store.set(input.value, { remember: remember.checked }); input.value = ''; show(); onChange?.(); } catch (e) { status.textContent = e.message; } } }, 'Use key');
