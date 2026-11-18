@@ -3,8 +3,11 @@
   "name": "Evals",
   "what_it_does": "A family of client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies at the centre, and the shared core they all use.",
   "owner": "AgentiCCells",
-  "team": "factory@AgentiCCells.dinis, instructed by Dinis Cruz",
-  "licence": { "code": "Apache-2.0", "text": "CC BY 4.0" },
+  "team": "evals team (conductor.evals@AgentiCCells.dinis and six roles), instructed by Dinis Cruz",
+  "licence": {
+    "code": "Apache-2.0",
+    "text": "CC BY 4.0"
+  },
   "repository": "https://github.com/AgentiCCells/AgentiCCells__Site__Evals",
   "live_address": "https://evals.agenticcells.site",
   "version_from": "https://evals.agenticcells.site/version.json"

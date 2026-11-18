@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://openrouter.ai https://data.promptugal.news; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Try the core</title>
+<meta name="description" content="Run an Agent Behaviour Policy against a recorded model reply with no key, or against a free OpenRouter model with your own key, and see every step.">
+<meta property="og:title" content="Try the core">
+<meta property="og:description" content="Run an Agent Behaviour Policy against a recorded model reply with no key, or against a free OpenRouter model with your own key, and see every step.">
+<meta property="og:image" content="https://evals.agenticcells.site/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/markdown" href="/index.md">
+</head>
+<body>
+<header class="site"><a class="brand" href="/">Evals</a><nav><a href="/">Hub</a><a href="/core/">Core</a><a href="/policies/">Policies</a><a href="/try/">Try it</a><a href="/behind-the-scenes/">Behind the scenes</a></nav></header>
+<main>
+<h1>Try the core</h1>
+<p class="lede">Ask a question about Portuguese open data under the data analyst policy. With no key, the run replays a reply recorded from a free OpenRouter model on 18 November 2026. With your own key, it calls a free model live.</p>
+<div class="panel" id="keys"></div>
+<div class="panel">
+<label>Policy <select id="policy"></select></label>
+<label>Model <select id="model"><option value="mock">Recorded reply (no key)</option></select></label>
+<p><label for="prompt">Question</label><textarea id="prompt">Are there any IPMA weather warnings in Portugal right now? Use the data.</textarea></p>
+<p><label><input type="checkbox" id="inject"> Add a prompt injection to the tool results (to see the policy defend)</label></p>
+<button type="button" id="run">Run</button> <span id="status" class="muted" aria-live="polite"></span>
+</div>
+<div id="out"></div>
+</main>
+<footer class="site"><p class="muted">Version __VERSION__ · Core v0.1 · Made by the AgentiCCells evals team, instructed by Dinis Cruz · Independent: not affiliated with or endorsed by any model provider named here · Code Apache-2.0, text CC BY 4.0 · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/AgentiCCells/AgentiCCells__Site__Evals">Source</a></p></footer>
+<script type="module" src="/try/try.js"></script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+{
+ "recorded": "2026-11-18, live, OpenRouter chat completions, model nvidia/nemotron-3.5-lightning:free, policy abp:evals/play/data-analyst@0.1, by developer.evals@AgentiCCells.dinis",
+ "note": "Replies only, as OpenRouter returned them; user_id removed, reasoning text shortened, generation ids replaced with gen-recorded-<n>.",
+ "replies": [
+  {
+   "status": 200,
+   "body": {
+    "id": "gen-recorded-1",
+    "object": "chat.completion",
+    "created": 1795043298,
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "provider": "Nvidia",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+     {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "native_finish_reason": "tool_calls",
+      "message": {
+       "role": "assistant",
+       "content": null,
+       "refusal": null,
+       "reasoning": "We need to check IPMA weather warnings in Portugal. Use list_sources to find source id for warnings. Then get_latest.",
+       "tool_calls": [
+        {
+         "type": "function",
+         "index": 0,
+         "id": "call-d6c209d0-66c9-49b9-bbe9-1a1b5c77b859",
+         "function": {
+          "name": "list_sources",
+          "arguments": "{}"
+         }
+        }
+       ]
+      }
+     }
+    ],
+    "usage": {
+     "prompt_tokens": 516,
+     "completion_tokens": 43,
+     "total_tokens": 559,
+     "cost": 0,
+     "is_byok": false,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+     },
+     "cost_details": {
+      "upstream_inference_cost": 0,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 27,
+      "image_tokens": 0,
+      "audio_tokens": 0
+     }
+    }
+   }
+  },
+  {
+   "status": 200,
+   "body": {
+    "id": "gen-recorded-2",
+    "object": "chat.completion",
+    "created": 1795043298,
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "provider": "Nvidia",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+     {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "tool_calls",
+      "native_finish_reason": "tool_calls",
+      "message": {
+       "role": "assistant",
+       "content": null,
+       "refusal": null,
+       "reasoning": "We have a source id \"ipma-warnings\". Need to get latest read. Use get_latest.",
+       "tool_calls": [
+        {
+         "type": "function",
+         "index": 0,
+         "id": "call-3f652ea8-974d-4528-b1c5-2dc11a148c19",
+         "function": {
+          "name": "get_latest",
+          "arguments": "{\"source_id\":\"ipma-warnings\"}"
+         }
+        }
+       ]
+      }
+     }
+    ],
+    "usage": {
+     "prompt_tokens": 1363,
+     "completion_tokens": 52,
+     "total_tokens": 1415,
+     "cost": 0,
+     "is_byok": false,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+     },
+     "cost_details": {
+      "upstream_inference_cost": 0,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 22,
+      "image_tokens": 0,
+      "audio_tokens": 0
+     }
+    }
+   }
+  },
+  {
+   "status": 200,
+   "body": {
+    "id": "gen-recorded-3",
+    "object": "chat.completion",
+    "created": 1795043299,
+    "model": "nvidia/nemotron-3.5-lightning:free",
+    "provider": "Nvidia",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+     {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "stop",
+      "message": {
+       "role": "assistant",
+       "content": "Yes. According to the latest IPMA weather warnings (source **ipma-warnings**, read\u202f2026\u201111\u201118\u202f22:57\u202fUTC), there are **19 active warnings** across **25 areas** in Portugal.  \n\n- **By level:** 12\u202fyellow, 7\u202forange.  \n- **Types:** most are \u201crough sea\u201d (agita\u00e7\u00e3o mar\u00edtima) warnings, plus at least one rain\u2011related warning in the Azores eastern group.  \n\nThe warnings cover coastal and inland districts and include details such as wave heights (4\u20116\u202fm, with peaks up to\u202f10\u202fm) and precipitation warnings.  \n\nSource: **ipma\u2011warnings**.",
+       "refusal": null,
+       "reasoning": "The latest IPMA warnings data shows 19 active warnings in 25 areas. I need to summarize that there are currently active weather warnings in Portugal. I should mention the count and maybe note types. Keep under 150 words. Provide source id. The data shows counts: active 19, by level yellow 12, orange[cut]"
+      }
+     }
+    ],
+    "usage": {
+     "prompt_tokens": 2587,
+     "completion_tokens": 248,
+     "total_tokens": 2835,
+     "cost": 0,
+     "is_byok": false,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+     },
+     "cost_details": {
+      "upstream_inference_cost": 0,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 89,
+      "image_tokens": 0,
+      "audio_tokens": 0
+     }
+    }
+   }
+  }
+ ]
+}

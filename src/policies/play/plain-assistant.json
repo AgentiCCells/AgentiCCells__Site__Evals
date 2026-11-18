@@ -1,0 +1,48 @@
+{
+  "abp": "0.1",
+  "id": "abp:evals/play/plain-assistant@0.1",
+  "name": "Plain assistant",
+  "kind": "playground",
+  "summary": "A short, honest assistant with no tools: says when it does not know, no em dashes, British English.",
+  "instructions": [
+    "Answer in plain British English, in at most 120 words.",
+    "Say when you do not know.",
+    "Do not use em dashes."
+  ],
+  "tools": {
+    "allow": [],
+    "deny": [
+      "*"
+    ]
+  },
+  "untrusted": {
+    "sources": [],
+    "wrap": true,
+    "on_injection": "flag"
+  },
+  "limits": {
+    "max_steps": 1,
+    "max_output_tokens": 400
+  },
+  "checks": [
+    {
+      "id": "no-em-dash",
+      "kind": "must_not_match",
+      "value": "\u2014",
+      "why": "house style"
+    },
+    {
+      "id": "short",
+      "kind": "max_words",
+      "value": 120,
+      "why": "brevity"
+    },
+    {
+      "id": "no-tools",
+      "kind": "must_not_call_tool",
+      "value": "*",
+      "why": "no tools under this policy"
+    }
+  ],
+  "on_violation": "flag"
+}

@@ -3,15 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://openrouter.ai https://data.promptugal.news; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Evals</title>
-<meta name="description" content="A family of client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies at the centre, and the shared core they all use.">
-<style>body{margin:0;font:18px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fbf7f0;color:#222}main{max-width:40rem;margin:0 auto;padding:3rem 1rem}h1{font-size:2rem;line-height:1.2}.muted{color:#666;font-size:.9rem}@media(prefers-color-scheme:dark){body{background:#17140f;color:#eee}.muted{color:#aaa}}</style>
+<meta name="description" content="Client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies at the centre, and the shared core they all use.">
+<meta property="og:title" content="Evals">
+<meta property="og:description" content="Client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies at the centre, and the shared core they all use.">
+<meta property="og:image" content="https://evals.agenticcells.site/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/markdown" href="/index.md">
 </head>
 <body>
+<header class="site"><a class="brand" href="/">Evals</a><nav><a href="/">Hub</a><a href="/core/">Core</a><a href="/policies/">Policies</a><a href="/try/">Try it</a><a href="/behind-the-scenes/">Behind the scenes</a></nav></header>
 <main>
-<h1>Evals</h1>
-<p>A family of client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies at the centre, and the shared core they all use.</p>
-<p class="muted">Version __VERSION__ · Made by the <a href="https://github.com/AgentiCCells/AgentiCCells__Site__Factory">AgentiCCells site factory</a> · Code Apache-2.0, text CC BY 4.0.</p>
+<h1>Evals: test AI models under a policy, in your browser</h1>
+<p class="lede">Playgrounds and evals for AI model providers. Every run happens under an Agent Behaviour Policy (ABP): what the model is told, which tools it may call, how tool results are treated, and the checks its answer must pass. Everything runs in your browser; your key never reaches us.</p>
+<h2>The family</h2>
+<ul class="cards">
+<li><h3><a href="/core/">Shared core v0.1</a></h3><p>Versioned ES modules: provider adapters, the ABP engine, the agent loop, the eval runner, tools over open data, a cost meter, key helpers and UI pieces, with <a href="/core/v0.1/tests/">in-browser tests</a>.</p></li>
+<li><h3><a href="/policies/">Policy library</a></h3><p>Agent Behaviour Policies as plain JSON. The first entries are the policies of the team that builds these sites.</p></li>
+<li><h3><a href="/try/">Try the core</a></h3><p>Run a policy against a recorded model reply with no key, or against a free OpenRouter model with your own key.</p></li>
+<li><h3>OpenRouter evals</h3><p>The first provider site, on core v0.1: sign-in, model browser with free models first, chat, tools, side by side and evals. <span class="muted">Planned for round 2; not live yet.</span></p></li>
+</ul>
+<h2>How a run works</h2>
+<ol>
+<li>Pick a policy and a model. The policy becomes the system prompt and filters the tools the model can see.</li>
+<li>The agent loop calls the model. Each tool call is checked against the policy before it runs.</li>
+<li>Tool results are wrapped as untrusted data. Text in them that reads like an instruction is flagged, and the model is told not to follow it.</li>
+<li>The answer is checked against the policy: patterns, length, no secrets, which tools were used. The run records tokens, cost and time.</li>
+</ol>
+<h2>Your key</h2>
+<p>Keys stay in your browser: in memory by default, in this browser's storage only if you choose, with a button to forget them. They are sent only to the provider, never to us, and never put in a URL, a log or an export.</p>
+<p class="muted">Independent: not affiliated with or endorsed by OpenRouter or any model provider. Open data from <a href="https://data.promptugal.news">data.promptugal.news</a> (CC BY 4.0; each source keeps its own terms).</p>
 </main>
+<footer class="site"><p class="muted">Version __VERSION__ · Core v0.1 · Made by the AgentiCCells evals team, instructed by Dinis Cruz · Independent: not affiliated with or endorsed by any model provider named here · Code Apache-2.0, text CC BY 4.0 · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/AgentiCCells/AgentiCCells__Site__Evals">Source</a></p></footer>
+
 </body>
 </html>

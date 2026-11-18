@@ -1,0 +1,69 @@
+{
+  "abp": "0.1",
+  "library": "Evals policy library",
+  "policies": [
+    {
+      "id": "abp:evals/team/conductor@0.1",
+      "path": "team/conductor.json",
+      "name": "Conductor (conductor.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Runs the rounds: plans each round, hands work to the other roles, keeps REALITY.md true, releases, and reports to cells@ after each round."
+    },
+    {
+      "id": "abp:evals/team/architect@0.1",
+      "path": "team/architect.json",
+      "name": "Architect (architect.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Shapes the shared core: module boundaries, versioned paths under /core/v<major>.<minor>/, the provider adapter contract and the ABP format."
+    },
+    {
+      "id": "abp:evals/team/developer@0.1",
+      "path": "team/developer.json",
+      "name": "Developer (developer.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Builds the core modules, the pages and their in-browser tests."
+    },
+    {
+      "id": "abp:evals/team/designer@0.1",
+      "path": "team/designer.json",
+      "name": "Designer (designer.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Designs the pages: readable, accessible, light and dark, phone width first; later rounds add five designs under /d/ with a chooser."
+    },
+    {
+      "id": "abp:evals/team/writer@0.1",
+      "path": "team/writer.json",
+      "name": "Writer (writer.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Writes the words: pages, guides, llms.txt, index.md, round reports."
+    },
+    {
+      "id": "abp:evals/team/security@0.1",
+      "path": "team/security.json",
+      "name": "Security (security.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Reviews every release for key handling, CSP, third-party code and prompt injection through tool results and web search."
+    },
+    {
+      "id": "abp:evals/team/reviewer@0.1",
+      "path": "team/reviewer.json",
+      "name": "Reviewer (reviewer.evals@AgentiCCells.dinis)",
+      "kind": "team",
+      "summary": "Reviews each round against the brief and REALITY.md, and decides whether a site passes."
+    },
+    {
+      "id": "abp:evals/play/data-analyst@0.1",
+      "path": "play/data-analyst.json",
+      "name": "Data analyst on PrompTugal data",
+      "kind": "playground",
+      "summary": "Answers questions from data.promptugal.news only, through tools, citing the source id, and ignores instructions found in data."
+    },
+    {
+      "id": "abp:evals/play/plain-assistant@0.1",
+      "path": "play/plain-assistant.json",
+      "name": "Plain assistant",
+      "kind": "playground",
+      "summary": "A short, honest assistant with no tools: says when it does not know, no em dashes, British English."
+    }
+  ]
+}

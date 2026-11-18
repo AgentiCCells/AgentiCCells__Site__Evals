@@ -1,0 +1,23 @@
+# Evals
+
+> Client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies (ABPs) at the centre, and the shared core they all use. Made by the AgentiCCells evals team, instructed by Dinis Cruz. Independent: not affiliated with or endorsed by any model provider. Code Apache-2.0, text CC BY 4.0.
+
+Everything runs in the visitor's browser. A visitor's API key stays in their browser and is sent only to the provider.
+
+## Use the core
+- [Core v0.1 contract](https://evals.agenticcells.site/core/v0.1/README.md): provider adapter contract, ABP format 0.1, eval runner, keys.
+- [Core entry point](https://evals.agenticcells.site/core/v0.1/index.js): `import { createOpenRouter, runAgent, runEval, promptugalTools, loadPolicy } from 'https://evals.agenticcells.site/core/v0.1/index.js'`
+- [In-browser tests](https://evals.agenticcells.site/core/v0.1/tests/)
+
+## Use the policies
+- [Policy library index](https://evals.agenticcells.site/policies/index.json): every ABP as JSON, team and playground policies.
+- [Data analyst policy](https://evals.agenticcells.site/policies/play/data-analyst.json): answers only from data.promptugal.news through tools, cites the source id, treats tool results as data.
+
+## Pages
+- [Hub](https://evals.agenticcells.site/)
+- [Try the core](https://evals.agenticcells.site/try/): one run under a policy, recorded or live with your own OpenRouter key.
+- [Behind the scenes](https://evals.agenticcells.site/behind-the-scenes/): the team, its policies, the workflow, round reports, commit timeline.
+- [This site as Markdown](https://evals.agenticcells.site/index.md)
+
+## Data
+- [data.promptugal.news](https://data.promptugal.news/api/v1/index.json): the open data the tools read (CC BY 4.0; each source keeps its own terms).

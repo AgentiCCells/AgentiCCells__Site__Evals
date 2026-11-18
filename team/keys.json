@@ -1,0 +1,22 @@
+{
+  "schema": "team/keys.json (draft)",
+  "note": "Public key bundles only, from sgit pki export. One active key per role. Entry shape to be aligned with AgentiCCells__Website team/keys.json, which this session could not read.",
+  "keys": [
+    {
+      "agent": "conductor.evals@AgentiCCells.dinis",
+      "status": "active",
+      "created": "2026-11-18",
+      "source": "sgit pki keygen on the second account, at Dinis Cruz's word (2026-11-18, about 22:48 UTC)",
+      "fingerprint": "sha256:5db615350a207363",
+      "signing_fingerprint": "sha256:c8160be117e842b3",
+      "bundle": {
+        "v": 1,
+        "encrypt": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1zUXY+UOK0ynRb7Ekv5u\npVl5z2uvSp8Of52iK/fCUkhKDrvQgRZ20ob5VM7YsD7XgOTeRifrHntp/xG8rvTk\n+a/bbreyp4BmmxkdFE016OCaSHBJjrsvdX068GWClNQZidLMZy5/CH2NugKd55Q2\n5209paWr3Vci7d8Hqs+iAPRJEuTWhUnQ+72n/FUgQwq0upxwwOe3Viq6pAEclsCx\nfRvIpGiFyvssoHy+S4VlFjfTh25mSHo57MCGP+aCXOn/+QRXYEh0qIaelji5ARKs\nk4qdpC4EC1hemsdPY9+Pc8hKZNHBdiXN4UKRpr2jfW9vmv0GW1KGeCc9MPLn30LF\nMZoGBzUfwWxkHGfWvbG/+Oc7+CFhyg3fqiQjtHJNFriF8Q4ayXZnZeCT+eeUGQ1U\nMDEvxvlZGZHPdSkyR0Cs37CEIdXQcVjY7S+8lcDuCGnT91X0O9VXIn0R3RM+Hw7+\n23k4osmFhvjEkyIhOGwrmluQB+BfYQcQ45L/jCBR483lYmgomMqwnXYVnBRScHlg\n3LVe4LMUBityZMJcvCtNS8IZ3WSnCWCq1gl6IoirtVCWa07bpApzlsUvg5J6MoP4\nXoA13XVh1FglXVQ2ySWa+hYdQmOG8BlxTgSCaMFoVY/Gr0FMmteHgjhtV4sqyTA8\nb5XJQeV881BAK9ayKKuuubkCAwEAAQ==\n-----END PUBLIC KEY-----\n",
+        "sign": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2fN0d628ZyUilLx9mg3S16uMSrh0\nua8mClAIRvIftC10DPEBvjtYQtHzp8Fi845ZrBHt3tHwPFBKSsWSp6Rkxw==\n-----END PUBLIC KEY-----\n",
+        "label": "conductor.evals@AgentiCCells.dinis",
+        "fingerprint": "sha256:5db615350a207363",
+        "signing_fingerprint": "sha256:c8160be117e842b3"
+      }
+    }
+  ]
+}

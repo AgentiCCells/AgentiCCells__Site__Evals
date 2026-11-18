@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://openrouter.ai https://data.promptugal.news; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Evals core v0.1</title>
+<meta name="description" content="The shared core of the evals family: versioned ES modules for provider adapters, Agent Behaviour Policies, the agent loop, the eval runner, data tools, cost and keys.">
+<meta property="og:title" content="Evals core v0.1">
+<meta property="og:description" content="The shared core of the evals family: versioned ES modules for provider adapters, Agent Behaviour Policies, the agent loop, the eval runner, data tools, cost and keys.">
+<meta property="og:image" content="https://evals.agenticcells.site/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/markdown" href="/index.md">
+</head>
+<body>
+<header class="site"><a class="brand" href="/">Evals</a><nav><a href="/">Hub</a><a href="/core/">Core</a><a href="/policies/">Policies</a><a href="/try/">Try it</a><a href="/behind-the-scenes/">Behind the scenes</a></nav></header>
+<main>
+<h1>Shared core</h1>
+<p class="lede">Plain ES modules, no build step, no third-party code. Pin a version: a published version never changes in place.</p>
+<pre>import { createOpenRouter, createKeyStore, runAgent, runEval, promptugalTools, loadPolicy }
+  from 'https://evals.agenticcells.site/core/v0.1/index.js';</pre>
+<p>Sites in the family copy or import a pinned version. The contract is in <a href="/core/v0.1/README.md">core/v0.1/README.md</a>; the tests run in your browser at <a href="/core/v0.1/tests/">core/v0.1/tests/</a>.</p>
+<h2>Modules in v0.1</h2>
+<div class="tablewrap"><table>
+<tr><th>Module</th><th>What it does</th></tr>
+<tr><td><a href="/core/v0.1/abp.js"><code>abp.js</code></a></td><td>Validates a policy, builds its system prompt, filters tools, checks each tool call, wraps untrusted text and flags instructions in it, checks the answer.</td></tr>
+<tr><td><a href="/core/v0.1/agent.js"><code>agent.js</code></a></td><td>The agent loop: model, tool calls, tool results, model, with a step-by-step trace.</td></tr>
+<tr><td><a href="/core/v0.1/eval.js"><code>eval.js</code></a></td><td>Runs one policy and a suite of cases across many models: pass or fail, tokens, cost, time. Retries a rate limit once.</td></tr>
+<tr><td><a href="/core/v0.1/providers/openrouter.js"><code>providers/openrouter.js</code></a></td><td>OpenRouter adapter: models (free first), chat completions with tools, OAuth PKCE sign-in. Checked against OpenRouter's documentation on 18 November 2026.</td></tr>
+<tr><td><a href="/core/v0.1/providers/mock.js"><code>providers/mock.js</code></a></td><td>A provider that replays recorded replies, for tests and demos with no key.</td></tr>
+<tr><td><a href="/core/v0.1/tools/promptugal.js"><code>tools/promptugal.js</code></a></td><td>Two read-only tools over data.promptugal.news: <code>list_sources</code> and <code>get_latest</code>.</td></tr>
+<tr><td><a href="/core/v0.1/cost.js"><code>cost.js</code></a></td><td>Cost meter: the provider's reported cost first, listed prices as a fallback.</td></tr>
+<tr><td><a href="/core/v0.1/keys.js"><code>keys.js</code></a></td><td>Key store (memory by default, remember by choice, forget), masking, redaction, PKCE.</td></tr>
+<tr><td><a href="/core/v0.1/ui.js"><code>ui.js</code></a> and <a href="/core/v0.1/ui.css"><code>ui.css</code></a></td><td>UI pieces: the step-by-step trace, the checks, a key panel. Model and tool text is always set as text, never as HTML.</td></tr>
+</table></div>
+</main>
+<footer class="site"><p class="muted">Version __VERSION__ · Core v0.1 · Made by the AgentiCCells evals team, instructed by Dinis Cruz · Independent: not affiliated with or endorsed by any model provider named here · Code Apache-2.0, text CC BY 4.0 · <a href="/llms.txt">llms.txt</a> · <a href="https://github.com/AgentiCCells/AgentiCCells__Site__Evals">Source</a></p></footer>
+
+</body>
+</html>

@@ -1,0 +1,52 @@
+// Eval runner, core v0.1. Code Apache-2.0.
+// Tests one policy across many models: each case runs through the agent loop under the policy,
+// then the policy's checks and the case's own checks decide pass or fail. Records tokens, cost and
+// time. Runs models one at a time by default, to stay inside free-tier rate limits.
+
+import { runAgent } from './agent.js';
+import { checkOutput } from './abp.js';
+
+// A suite: { id, name, cases: [{ id, prompt, checks?: [ABP checks] }] }
+export async function runEval({ provider, policy, suite, models, tools = [], maxTokens, signal, onResult, secrets = [], concurrency = 1, retries = 1 }) {
+  const jobs = [];
+  for (const model of models) for (const c of suite.cases) jobs.push({ model, c });
+  const results = new Array(jobs.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      if (signal?.aborted) return;
+      const n = next++;
+      const { model, c } = jobs[n];
+      let r, attempt = 0;
+      do { r = await runAgent({ provider, model, policy, prompt: c.prompt, tools, maxTokens, signal, secrets }); attempt++; }
+      while (r.stopped?.startsWith('error') && /\b429\b|rate/i.test(r.stopped) && attempt <= retries && !(await pause(2000 * attempt, signal)));
+      const own = checkOutput({ checks: c.checks || [] }, r.output, r.trace, { secrets });
+      const checks = [...r.verdict.results, ...own.results.map((x) => ({ ...x, id: `case:${x.id}` }))];
+      const pass = !r.stopped?.startsWith('error') && checks.every((x) => x.pass);
+      results[n] = { model, case: c.id, pass, error: r.stopped?.startsWith('error') ? r.stopped : null, output: r.output, checks, usage: r.trace.usage, ms: r.trace.ms, toolCalls: r.trace.toolCalls, flags: r.trace.flags, mocked: r.trace.mocked, servedBy: r.trace.model };
+      onResult?.(results[n], n, jobs.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
+  return { policy: policy.id, suite: suite.id, at: new Date().toISOString(), results: results.filter(Boolean), summary: summarise(results.filter(Boolean)) };
+}
+
+const pause = (ms, signal) => new Promise((res) => { const t = setTimeout(() => res(false), ms); signal?.addEventListener('abort', () => { clearTimeout(t); res(true); }, { once: true }); });
+
+export function summarise(results) {
+  const by = {};
+  for (const r of results) {
+    const m = (by[r.model] ||= { model: r.model, cases: 0, passed: 0, errors: 0, input: 0, output: 0, cost: 0, costKnown: true, ms: 0 });
+    m.cases++; if (r.pass) m.passed++; if (r.error) m.errors++;
+    m.input += r.usage.input; m.output += r.usage.output; m.ms += r.ms;
+    if (!r.usage.costKnown) m.costKnown = false; m.cost += r.usage.cost;
+  }
+  return Object.values(by);
+}
+
+// Export a run as JSON with no key in it: results only, secrets redacted.
+export function exportRun(run, secrets = []) {
+  let s = JSON.stringify(run, null, 2);
+  for (const x of secrets) if (x && x.length >= 8) s = s.split(x).join('[redacted]');
+  return s;
+}
