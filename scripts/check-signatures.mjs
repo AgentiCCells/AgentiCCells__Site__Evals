@@ -1,4 +1,4 @@
-// Every commit (merges too) from the one that added this file onwards must carry a good SSH signature
+// Every commit (merges too) after the pinned commit must carry a good SSH signature
 // by a key published in its PARENT's team/keys.json, never its own, so a commit cannot add a key and
 // pass with it: a new key arrives in a commit signed by a key already listed, or from a person.
 // No commit is exempted by author or committer name or address. Keys are published in team/keys.json (Dinis Cruz, 2026-11-19, relayed by cells.b@: "every then
@@ -13,7 +13,7 @@ import { createPublicKey } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const git = (...a) => execFileSync('git', a, { encoding: 'utf8' }).trim();
+const git = (...a) => execFileSync('git', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const tryGit = (...a) => { try { return git(...a); } catch { return null; } };
 const lines = (s) => (s ? s.split('\n').filter(Boolean) : []);
 
@@ -34,18 +34,16 @@ if (git('rev-parse', '--is-shallow-repository') !== 'false') { console.error('ch
 
 const [beforeArg, afterArg] = process.argv.slice(2);
 const after = afterArg || 'HEAD';
-const first = lines(git('log', '--format=%H', '--diff-filter=A', '--reverse', after, '--', 'scripts/check-signatures.mjs'))[0];
-if (!first) { console.error('check-signatures: cannot find the commit that added scripts/check-signatures.mjs'); process.exit(1); }
+// Signing began after PINNED, the last unsigned commit (f37f615, 2026-11-19). Only its ancestors (and
+// itself) are skipped; nothing is skipped by what a tree holds or by commit dates (security@, 2026-11-19).
+const PINNED = 'f37f615f5606ec931a4aeb485a2bdc09d454db3e';
+if (!tryGit('rev-parse', '--verify', '--quiet', `${PINNED}^{commit}`)) { console.error(`check-signatures: refused: the pinned commit ${PINNED.slice(0, 7)} is not in this history`); process.exit(1); }
 const zero = /^0+$/;
 const before = beforeArg && !zero.test(beforeArg) && tryGit('rev-parse', '--verify', '--quiet', `${beforeArg}^{commit}`);
 const range = before ? [`${before}..${after}`] : [after];
 const added = lines(git('rev-list', ...range));
-// In scope: every commit in the range except history from before the check (ancestors of the commit
-// before the one that added it). So a commit with no parent (an orphan) merged in is in scope, and
-// is refused below: it has no parent's keys to trust.
-const beforeCheck = tryGit('rev-parse', '--verify', '--quiet', `${first}^1`);
-const isOld = (c) => { if (!beforeCheck) return false; try { execFileSync('git', ['merge-base', '--is-ancestor', c, beforeCheck]); return true; } catch { return false; } };
-const inScope = new Set(added.filter((c) => !isOld(c)));
+const isPinnedHistory = (c) => { try { execFileSync('git', ['merge-base', '--is-ancestor', c, PINNED], { stdio: 'ignore' }); return true; } catch { return false; } };
+const inScope = new Set(added.filter((c) => !isPinnedHistory(c)));
 
 // Allowed signers for one commit: every key (active or superseded) in its first parent's team/keys.json.
 const dir = mkdtempSync(join(tmpdir(), 'acc-signers-'));

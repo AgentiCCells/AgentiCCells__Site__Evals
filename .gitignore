@@ -225,3 +225,6 @@ __marimo__/
 *.pem
 # build output
 _site/
+# trusted copies of the security checks, extracted from the base by CI and release.sh
+.ci-trusted/
+.ci-trusted.*/

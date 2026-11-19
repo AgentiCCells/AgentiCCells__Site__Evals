@@ -22,6 +22,7 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 - The prospective partner eval site, and a second provider (name with Dinis): not started; see team/PLAN.md (a proposal). No call has been made to its API.
 
 ## Signing
+- Every security check (trailers, signatures, leak scan, and the exemptions they read) runs in CI and scripts/release.sh from the trusted base's copy (the last release tag in CI, origin/dev in release), failing closed if missing. Skips are only by ancestry of a commit pinned in the checker; shallow checkouts are refused. Self-tests: scripts/test-signatures.mjs (11 cases) and scripts/test-commits.mjs (3 cases).
 - From the commit that adds scripts/check-signatures.mjs (2026-11-19), every commit is SSH-signed with the conductor's bundle.sign key, and the release script and CI check it against team/keys.json. The four round 1 commits before it are unsigned; history is not rewritten.
 
 ## Earlier

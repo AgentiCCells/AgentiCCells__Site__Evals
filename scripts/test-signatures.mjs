@@ -4,7 +4,7 @@
 // the environment's global signer. Prints OK or the failing case. Code Apache-2.0.
 // Written by conductor.evals@AgentiCCells.dinis, 2026-11-19.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, copyFileSync, mkdirSync, chmodSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, chmodSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -40,7 +40,11 @@ try {
   for (const [k, v] of [['user.name', 'test'], ['user.email', 'test@example.invalid'], ['gpg.format', 'ssh'], ['gpg.ssh.program', 'ssh-keygen'], ['commit.gpgsign', 'false']]) git('config', k, v);
   writeKeys([['a@AgentiCCells.test', a]]);
   git('add', '-A'); commit('a person publishes key a', null);
-  copyFileSync(join(here, 'check-signatures.mjs'), join(repo, 'scripts/check-signatures.mjs'));
+  // The checker pins the last unsigned commit; in this test repository that is the one just made.
+  const pin = git('rev-parse', 'HEAD');
+  const src = readFileSync(join(here, 'check-signatures.mjs'), 'utf8');
+  if (!/const PINNED = '[0-9a-f]{40}';/.test(src)) throw new Error('the checker has no PINNED commit');
+  writeFileSync(join(repo, 'scripts/check-signatures.mjs'), src.replace(/const PINNED = '[0-9a-f]{40}';/, `const PINNED = '${pin}';`));
   git('add', '-A'); commit('add the check, signed by a', a);
   check('signed by a listed key', true, 'OK (1 signed commits checked');
 
@@ -86,4 +90,4 @@ try {
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 if (failures.length) { console.error(failures.join('\n')); console.error(`FAILED (${failures.length})`); process.exit(1); }
-console.log('OK (9 signature check cases)');
+console.log('OK (11 signature check cases)');

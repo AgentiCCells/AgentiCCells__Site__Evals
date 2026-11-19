@@ -41,36 +41,41 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Every commit since the last release carries an Agent trailer
-        # From the last release tag, not github.event.before: GitHub drops a pending run when a
-        # newer one queues, and the surviving run's "before" is the dropped push's head, so the
-        # dropped push's commits were never checked (specialist.code@ finding 3b).
+      - name: Take the security checks from the trusted base (fail closed)
+        # Every security check (trailers, signatures, leak scan, and the config they read) runs from the
+        # trusted base's copy, never from the pushed tree, with no fallback (security@, 2026-11-19).
+        # The base is the last release tag; without one, the push's "before". Nothing from the
+        # environment can override it.
         env:
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.sha }}
         run: |
-          last=$(git describe --tags --abbrev=0 --match "v${VERSION_BASE}.*" "$AFTER" 2>/dev/null || true)
-          node scripts/check-commits.mjs "${last:-$BEFORE}" "$AFTER"
-      - name: Signature check self-test
-        run: node scripts/test-signatures.mjs
-      - name: Every commit since the signing check began is signed by a key in team/keys.json
-        env:
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
+          base=$(git describe --tags --abbrev=0 --match "v${VERSION_BASE}.*" "$AFTER" 2>/dev/null || true)
+          if [ -z "$base" ] && [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -Eq '^0+$'; then base="$BEFORE"; fi
+          git rev-parse --verify --quiet "${base:-none}^{commit}" >/dev/null || { echo "no trusted base" >&2; exit 1; }
+          mkdir -p "$RUNNER_TEMP/trusted" .ci-trusted
+          for f in check-commits.mjs check-signatures.mjs; do
+            git show "$base:scripts/$f" > "$RUNNER_TEMP/trusted/$f" || { echo "no $f at $base" >&2; exit 1; }
+          done
+          # The leak scan finds the repository from its own path (its parent directory), so it sits one level down.
+          git show "$base:scripts/leak-scan.mjs" > .ci-trusted/leak-scan.mjs || { echo "no leak-scan.mjs at $base" >&2; exit 1; }
+          echo "TRUSTED_BASE=$(git rev-parse "$base")" >> "$GITHUB_ENV"
+      - name: Every commit since the base carries an Agent trailer (trusted copy)
+        run: node "$RUNNER_TEMP/trusted/check-commits.mjs" "$TRUSTED_BASE" "$GITHUB_SHA"
+      - name: Every commit since the base is signed by a key in its parent's team/keys.json (trusted copy)
+        run: node "$RUNNER_TEMP/trusted/check-signatures.mjs" "$TRUSTED_BASE" "$GITHUB_SHA"
+      - name: Self-tests of the checks in this push
         run: |
-          last=$(git describe --tags --abbrev=0 --match "v${VERSION_BASE}.*" "$AFTER" 2>/dev/null || true)
-          base="${last:-$BEFORE}"
-          # Run the checker from the trusted base, never from the pushed tree.
-          git show "$base:scripts/check-signatures.mjs" > "$RUNNER_TEMP/check-signatures.mjs" || { echo "no signature check at $base" >&2; exit 1; }
-          node "$RUNNER_TEMP/check-signatures.mjs" "$base" "$AFTER"
+          node scripts/test-signatures.mjs
+          node scripts/test-commits.mjs
       - run: node scripts/build.mjs
         env:
           SITE_VERSION: ${{ steps.version.outputs.version }}
       - run: node scripts/validate.mjs
       - name: Core tests
         run: node scripts/test-core.mjs
-      - name: Leak scan (tracked files and the built site)
-        run: node scripts/leak-scan.mjs
+      - name: Leak scan of tracked files and the built site (trusted copy)
+        run: node .ci-trusted/leak-scan.mjs
       - if: steps.mode.outputs.deploy == 'true'
         uses: actions/configure-pages@v5
       - if: steps.mode.outputs.deploy == 'true'
