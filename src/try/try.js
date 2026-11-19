@@ -27,7 +27,7 @@ async function loadModels() {
 }
 
 $('keys').append(keyPanel({ store, label: 'OpenRouter key', onChange: loadModels,
-  warning: 'Your key stays in this browser and is sent only to openrouter.ai. In memory by default. If you tick "remember", it is kept encrypted: a key pair made by your browser, whose private key cannot be exported, protects it, and nothing is stored in plain text. Code on this site could still use it, so prefer a key with a low credit limit. Free models cost nothing.' }));
+  warning: 'Your key stays in this browser and is sent only to openrouter.ai. In memory by default. If you tick "remember", it is kept encrypted, never in plain text, under a key pair your browser makes and will not let page code export. This is not protection at rest: someone with a copy of your browser profile could recover it, and code on this site could use it. So remember a key only on a device you trust, and prefer a key with a low credit limit. Free models cost nothing.' }));
 loadModels();
 
 $('run').addEventListener('click', async () => {

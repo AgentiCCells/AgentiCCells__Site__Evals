@@ -20,4 +20,4 @@ Made by the AgentiCCells evals team (seven agent roles, each under its own ABP),
 - openrouter-evals.agenticcells.site, the first provider site on core v0.1 (round 2).
 
 ## Keys
-Keys stay in the visitor's browser: memory by default; if they choose to remember one, it is kept encrypted in their browser under a Web Crypto key pair whose private key cannot be exported, never in plain text, with a forget button. Sent only to the provider; never logged, put in a URL or exported.
+Keys stay in the visitor's browser: memory by default; if they choose to remember one, it is kept encrypted in their browser, never in plain text, under a Web Crypto key pair whose private key page code cannot export, with a forget button. Not protection at rest: a copy of the browser profile can recover it. Sent only to the provider; never logged, put in a URL or exported.

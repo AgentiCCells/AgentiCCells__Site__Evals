@@ -3,7 +3,7 @@
 // A visitor's key stays in their browser. By default it lives in memory only and is gone when the
 // tab closes. When the visitor chooses "remember", it is kept encrypted in the vault (vault.js: a
 // Web Crypto key pair whose private key cannot be exported, IndexedDB), never in plain text, and
-// forget() wipes it. Dinis Cruz, 2026-11-19: visitors may keep their key in browser storage, ideally
+// forget() removes it from the browser's store. This is not protection at rest: see vault.js. Dinis Cruz, 2026-11-19: visitors may keep their key in browser storage, ideally
 // encrypted under a Web Crypto key whose private key is never exposed. The key is never logged,
 // never put in a URL and never sent anywhere but the provider.
 

@@ -12,10 +12,14 @@
 // - The key pair (as CryptoKey objects, which stay non-extractable) and the encrypted records live in
 //   IndexedDB. No secret is ever written in plain text.
 //
-// What it protects against: someone who copies the browser's stored data (a backup, a synced profile, a
-// forensic copy of the disk) gets ciphertext and a key they cannot export. What it does not protect
-// against: code running on this origin (for example an XSS) can still ask the browser to decrypt, which
-// is why every page also carries a strict CSP and loads no third-party script.
+// What it gives: no secret is ever in plain text in browser storage, and page code cannot read the
+// private key's bytes through Web Crypto, so the key cannot be copied out to another origin or seen by
+// a casual look at the storage. What it does NOT give: protection at rest. The browser keeps the private
+// key's bytes in the profile's IndexedDB files, so whoever copies the profile (a backup, a synced
+// profile, a disk image) can recover it and decrypt. Code running on this origin (for example an XSS)
+// can also ask the browser to decrypt, which is why every page carries a strict CSP and loads no
+// third-party script. Real protection at rest needs a key derived from something not on disk (a
+// passphrase, or a WebAuthn PRF): a proposal for a later version, not built here.
 
 const DB = 'agenticcells-evals-vault';
 const STORE = 'vault';
@@ -25,7 +29,11 @@ const enc = new TextEncoder(), dec = new TextDecoder();
 // A storage backend: get(id), put(id, value), del(id). IndexedDB in the browser; memory for tests.
 export function memoryBackend() {
   const m = new Map();
-  return { async get(id) { return m.get(id); }, async put(id, v) { m.set(id, v); }, async del(id) { m.delete(id); }, async clear() { m.clear(); }, _m: m };
+  return {
+    async get(id) { return m.get(id); }, async put(id, v) { m.set(id, v); },
+    async add(id, v) { if (m.has(id)) return false; m.set(id, v); return true; },
+    async del(id) { m.delete(id); }, async clear() { m.clear(); }, _m: m,
+  };
 }
 
 export function indexedDbBackend(idb = globalThis.indexedDB) {
@@ -43,16 +51,33 @@ export function indexedDbBackend(idb = globalThis.indexedDB) {
         const t = db.transaction(STORE, mode);
         const req = fn(t.objectStore(STORE));
         t.oncomplete = () => res(req?.result);
-        t.onerror = () => rej(t.error);
-        t.onabort = () => rej(t.error);
+        t.onerror = () => rej(t.error || req?.error || new Error('IndexedDB error'));
+        t.onabort = () => rej(t.error || req?.error || new Error('IndexedDB transaction aborted'));
       });
     } finally { db.close(); }
   };
   return {
     get: (id) => tx('readonly', (s) => s.get(id)),
     put: (id, v) => tx('readwrite', (s) => s.put(v, id)),
+    // Insert only if absent: false when the id already exists (another tab got there first).
+    add: async (id, v) => {
+      const db = await open();
+      try {
+        return await new Promise((res, rej) => {
+          const t = db.transaction(STORE, 'readwrite');
+          const req = t.objectStore(STORE).add(v, id);
+          let added = true;
+          req.onerror = (ev) => { if (req.error?.name === 'ConstraintError') { added = false; ev.preventDefault(); } };
+          t.oncomplete = () => res(added);
+          t.onerror = () => { if (added) rej(t.error || req.error || new Error('IndexedDB error')); };
+          t.onabort = () => rej(t.error || req.error || new Error('IndexedDB transaction aborted'));
+        });
+      } finally { db.close(); }
+    },
     del: (id) => tx('readwrite', (s) => s.delete(id)),
     clear: () => tx('readwrite', (s) => s.clear()),
+    // Remove the whole database. Deleted bytes may still sit on disk until the browser compacts it.
+    drop: () => new Promise((res, rej) => { const r = idb.deleteDatabase(DB); r.onsuccess = () => res(); r.onerror = () => rej(r.error); r.onblocked = () => res(); }),
   };
 }
 
@@ -60,17 +85,16 @@ const RSA = { name: 'RSA-OAEP', modulusLength: 3072, publicExponent: new Uint8Ar
 
 export function createVault({ backend } = {}) {
   const store = backend || indexedDbBackend();
-  let pair = null;
-  const keyPair = async () => {
-    if (pair) return pair;
-    pair = await store.get(PAIR);
-    if (!pair) {
-      // extractable: false. The public key of a non-extractable pair is still exportable by design.
-      pair = await crypto.subtle.generateKey(RSA, false, ['wrapKey', 'unwrapKey']);
-      await store.put(PAIR, pair);
-    }
-    return pair;
-  };
+  // One shared promise, and an insert-if-absent, so two calls or two tabs on first use agree on one pair.
+  let pairPromise = null;
+  const keyPair = () => (pairPromise ||= (async () => {
+    const found = await store.get(PAIR);
+    if (found) return found;
+    // extractable: false. The public key of a non-extractable pair is still exportable by design.
+    const made = await crypto.subtle.generateKey(RSA, false, ['wrapKey', 'unwrapKey']);
+    if (await store.add(PAIR, made)) return made;
+    return store.get(PAIR);
+  })().catch((e) => { pairPromise = null; throw e; }));
   const slot = (name) => { if (!/^[a-z0-9.-]+$/.test(name)) throw new Error('secret names are a-z, 0-9, . and -'); return `secret:${name}`; };
   return {
     async set(name, secret) {
@@ -90,8 +114,9 @@ export function createVault({ backend } = {}) {
     },
     async has(name) { return !!(await store.get(slot(name))); },
     async remove(name) { await store.del(slot(name)); },
-    // Forget everything, the key pair included.
-    async destroy() { pair = null; await store.clear(); },
+    // Remove everything from the browser's store, the key pair included (the database itself where the
+    // backend can drop it). The browser may keep deleted bytes on disk until it compacts its files.
+    async destroy() { pairPromise = null; if (store.drop) await store.drop(); else await store.clear(); },
     // For tests and the security page: is the private key really non-extractable?
     async privateKeyExtractable() { return (await keyPair()).privateKey.extractable; },
   };

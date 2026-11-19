@@ -80,8 +80,12 @@ export async function runTests({ load, policies }) {
     await v.remove('key.test'); eq(await v.get('key.test'), null);
     await v.set('key.test', 'x'.repeat(5000)); eq((await v.get('key.test')).length, 5000, 'long secrets (hybrid encryption)');
     await v.destroy(); eq(await backend.get('keypair'), undefined, 'destroy removes the key pair');
+    const b2 = vaultBackend(); const v1 = core.createVault({ backend: b2 }), v2 = core.createVault({ backend: b2 });
+    await Promise.all([v1.set('one', 'first'), v2.set('two', 'second')]);
+    eq([await v2.get('one'), await v1.get('two')], ['first', 'second'], 'two vaults starting at once share one key pair');
+    await v1.destroy();
   });
-  test('key store: memory by default, remember encrypted by choice, forget wipes it', async () => {
+  test('key store: memory by default, remember encrypted by choice, forget removes it', async () => {
     const backend = vaultBackend();
     const vault = core.createVault({ backend }); await vault.destroy();
     const legacy = memStorage(); legacy.setItem('agenticcells.evals.key.test', FAKE_KEY);
@@ -210,7 +214,7 @@ export async function runTests({ load, policies }) {
   for (const t of tests) {
     const t0 = Date.now();
     try { await t.fn(); results.push({ name: t.name, pass: true, ms: Date.now() - t0 }); }
-    catch (e) { results.push({ name: t.name, pass: false, error: e.message, ms: Date.now() - t0 }); }
+    catch (e) { results.push({ name: t.name, pass: false, error: e?.message ?? String(e), ms: Date.now() - t0 }); }
   }
   return results;
 }
