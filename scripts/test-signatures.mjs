@@ -26,9 +26,10 @@ function key(name) {
 }
 const writeKeys = (list) => writeFileSync(join(repo, 'team/keys.json'), JSON.stringify({ keys: list.map(([agent, k]) => ({ agent, bundle: { sign: k.pub } })) }, null, 2));
 const commit = (msg, signer) => git('-c', `user.signingkey=${signer ? signer.pem : ''}`, 'commit', '-q', ...(signer ? ['-S'] : ['--no-gpg-sign']), '--allow-empty', '-am', msg);
-function check(name, wantOk, wantText) {
-  let out = '', ok = true;
-  try { out = run('node', ['scripts/check-signatures.mjs', '', 'HEAD']); } catch (e) { ok = false; out = `${e.stdout}${e.stderr}`; }
+function check(name, wantOk, wantText, { from = null, base = '' } = {}) {
+  let out = '', ok = true, script = 'scripts/check-signatures.mjs';
+  if (from) { script = join(dir, 'trusted-check.mjs'); writeFileSync(script, git('show', `${from}:scripts/check-signatures.mjs`)); }
+  try { out = run('node', [script, base, 'HEAD']); } catch (e) { ok = false; out = `${e.stdout}${e.stderr}`; }
   if (ok !== wantOk || !out.includes(wantText)) failures.push(`${name}: wanted ${wantOk ? 'OK' : 'FAILED'} with "${wantText}", got ${ok ? 'OK' : 'FAILED'}: ${out.trim()}`);
 }
 
@@ -57,9 +58,25 @@ try {
   commit('b signs after a listed it', b);
   check('a key added by a listed key', true, 'OK (3 signed commits checked');
 
+  // (6) An orphan commit, even one signed by a listed key, merged in by a signed merge: refused.
+  const main = git('rev-parse', 'HEAD');
+  git('checkout', '-q', '--orphan', 'stray'); git('rm', '-rq', '--cached', '.');
+  writeKeys([['a@AgentiCCells.test', a]]); git('add', 'team/keys.json'); commit('orphan with no parent', a);
+  git('checkout', '-q', '-f', main); git('-c', `user.signingkey=${a.pem}`, 'merge', '-q', '-S', '--allow-unrelated-histories', '-X', 'ours', '-m', 'merge the orphan', 'stray');
+  check('an orphan merged in', false, 'no parent: a root commit has no published key to check against');
+  git('reset', '-q', '--hard', main); git('branch', '-q', '-D', 'stray');
+
+  // (7) A push that replaces the checker with one that always passes: the pushed copy says OK, the
+  // trusted base's copy (what release and CI run) still refuses the unsigned commit.
+  writeFileSync(join(repo, 'scripts/check-signatures.mjs'), "console.log('OK (weakened)');\n");
+  commit('weaken the checker, unsigned', null);
+  check('the pushed checker is not to be trusted', true, 'OK (weakened)');
+  check('the trusted base checker', false, 'signature status N', { from: main, base: main });
+  git('reset', '-q', '--hard', main);
+
   git('-c', 'user.name=conductor.evals', '-c', 'user.email=conductor.evals@AgentiCCells.dinis', 'commit', '-q', '--no-gpg-sign', '--allow-empty', '-m', 'unsigned, with a trusted-looking author');
   check('no exemption by author', false, 'signature status N');
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 if (failures.length) { console.error(failures.join('\n')); console.error(`FAILED (${failures.length})`); process.exit(1); }
-console.log('OK (5 signature check cases)');
+console.log('OK (8 signature check cases)');

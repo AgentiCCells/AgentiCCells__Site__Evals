@@ -59,7 +59,10 @@ jobs:
           AFTER: ${{ github.sha }}
         run: |
           last=$(git describe --tags --abbrev=0 --match "v${VERSION_BASE}.*" "$AFTER" 2>/dev/null || true)
-          node scripts/check-signatures.mjs "${last:-$BEFORE}" "$AFTER"
+          base="${last:-$BEFORE}"
+          # Run the checker from the trusted base, never from the pushed tree.
+          git show "$base:scripts/check-signatures.mjs" > "$RUNNER_TEMP/check-signatures.mjs" || { echo "no signature check at $base" >&2; exit 1; }
+          node "$RUNNER_TEMP/check-signatures.mjs" "$base" "$AFTER"
       - run: node scripts/build.mjs
         env:
           SITE_VERSION: ${{ steps.version.outputs.version }}

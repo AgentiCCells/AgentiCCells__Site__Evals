@@ -3,7 +3,8 @@
 // pass with it: a new key arrives in a commit signed by a key already listed, or from a person.
 // No commit is exempted by author or committer name or address. Keys are published in team/keys.json (Dinis Cruz, 2026-11-19, relayed by cells.b@: "every then
 // commit is signed by that key"). Older commits are skipped: history is never rewritten.
-// Usage: node scripts/check-signatures.mjs <before> <after>   (as scripts/check-commits.mjs)
+// Usage: node <checker> <before> <after>. Release and CI run the copy from the trusted base, never the
+// pushed tree's (git show <base>:scripts/check-signatures.mjs), so a push cannot weaken its own check.
 // Needs ssh-keygen. Prints OK or lists each failing commit and exits 1. Code Apache-2.0.
 // Written by conductor.evals@AgentiCCells.dinis.
 import { execFileSync } from 'node:child_process';
@@ -35,7 +36,12 @@ const zero = /^0+$/;
 const before = beforeArg && !zero.test(beforeArg) && tryGit('rev-parse', '--verify', '--quiet', `${beforeArg}^{commit}`);
 const range = before ? [`${before}..${after}`] : [after];
 const added = lines(git('rev-list', ...range));
-const inScope = new Set([first, ...lines(git('rev-list', '--ancestry-path', `${first}..${after}`))]);
+// In scope: every commit in the range except history from before the check (ancestors of the commit
+// before the one that added it). So a commit with no parent (an orphan) merged in is in scope, and
+// is refused below: it has no parent's keys to trust.
+const beforeCheck = tryGit('rev-parse', '--verify', '--quiet', `${first}^1`);
+const isOld = (c) => { if (!beforeCheck) return false; try { execFileSync('git', ['merge-base', '--is-ancestor', c, beforeCheck]); return true; } catch { return false; } };
+const inScope = new Set(added.filter((c) => !isOld(c)));
 
 // Allowed signers for one commit: every key (active or superseded) in its first parent's team/keys.json.
 const dir = mkdtempSync(join(tmpdir(), 'acc-signers-'));
