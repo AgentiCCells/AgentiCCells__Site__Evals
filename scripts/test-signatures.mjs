@@ -65,9 +65,11 @@ try {
   // (6) An orphan commit, even one signed by a listed key, merged in by a signed merge: refused.
   const main = git('rev-parse', 'HEAD');
   git('checkout', '-q', '--orphan', 'stray'); git('rm', '-rq', '--cached', '.');
-  writeKeys([['a@AgentiCCells.test', a]]); git('add', 'team/keys.json'); commit('orphan with no parent', a);
+  // Backdated too: no skip may depend on dates.
+  writeKeys([['a@AgentiCCells.test', a]]); git('add', 'team/keys.json');
+  run('git', ['-c', `user.signingkey=${a.pem}`, 'commit', '-q', '-S', '-m', 'backdated orphan with no parent'], { env: { ...process.env, GIT_COMMITTER_DATE: '2000-01-01T00:00:00Z', GIT_AUTHOR_DATE: '2000-01-01T00:00:00Z' } });
   git('checkout', '-q', '-f', main); git('-c', `user.signingkey=${a.pem}`, 'merge', '-q', '-S', '--allow-unrelated-histories', '-X', 'ours', '-m', 'merge the orphan', 'stray');
-  check('an orphan merged in', false, 'no parent: a root commit has no published key to check against');
+  check('a backdated orphan merged in', false, 'no parent: a root commit has no published key to check against');
   git('reset', '-q', '--hard', main); git('branch', '-q', '-D', 'stray');
 
   // (7) A push that replaces the checker with one that always passes: the pushed copy says OK, the

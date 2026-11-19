@@ -2,10 +2,11 @@
 # Run every gate, then rebase on dev and push. Stops at the first failure. Never pipe a gate.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-# Every security check runs from the trusted base's copy (origin/dev), never from the tree being pushed,
-# and fails closed if a check is missing there (security@, 2026-11-19).
+# Every security check runs from origin/dev's copy (BEFORE: what dev pointed to, already checked), never
+# from the tree being pushed. It fails closed if origin/dev is not an ancestor of HEAD or lacks a check.
 trusted() {
   local name=$1; shift
+  git merge-base --is-ancestor origin/dev HEAD || { echo "origin/dev is not an ancestor of HEAD: refused" >&2; return 1; }
   local t; t=$(mktemp -d "$PWD/.ci-trusted.XXXX")
   if ! git show "origin/dev:scripts/$name" > "$t/$name"; then echo "no $name at origin/dev" >&2; rm -rf "$t"; return 1; fi
   local rc=0; node "$t/$name" "$@" || rc=$?; rm -rf "$t"; return $rc
