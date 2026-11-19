@@ -28,6 +28,10 @@ function sshFromPem(pem) {
   return `ecdsa-sha2-nistp256 ${blob.toString('base64')}`;
 }
 
+// A shallow checkout hides parents, so parent keys and scope cannot be trusted: refuse it (security@,
+// 2026-11-19, relayed by cells.b@). CI checks out with fetch-depth 0.
+if (git('rev-parse', '--is-shallow-repository') !== 'false') { console.error('check-signatures: refused: this is a shallow checkout; fetch the full history first'); process.exit(1); }
+
 const [beforeArg, afterArg] = process.argv.slice(2);
 const after = afterArg || 'HEAD';
 const first = lines(git('log', '--format=%H', '--diff-filter=A', '--reverse', after, '--', 'scripts/check-signatures.mjs'))[0];

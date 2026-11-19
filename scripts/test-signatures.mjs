@@ -74,9 +74,16 @@ try {
   check('the trusted base checker', false, 'signature status N', { from: main, base: main });
   git('reset', '-q', '--hard', main);
 
+  // A shallow clone of the same history: refused before anything is checked.
+  const shallow = join(dir, 'shallow');
+  execFileSync('git', ['clone', '-q', '--depth', '1', `file://${repo}`, shallow]);
+  let sOut = '', sOk = true;
+  try { sOut = execFileSync('node', [join(repo, 'scripts/check-signatures.mjs'), '', 'HEAD'], { cwd: shallow, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); } catch (e) { sOk = false; sOut = `${e.stdout}${e.stderr}`; }
+  if (sOk || !sOut.includes('refused: this is a shallow checkout')) failures.push(`a shallow checkout: wanted FAILED with "refused: this is a shallow checkout", got ${sOk ? 'OK' : 'FAILED'}: ${sOut.trim()}`);
+
   git('-c', 'user.name=conductor.evals', '-c', 'user.email=conductor.evals@AgentiCCells.dinis', 'commit', '-q', '--no-gpg-sign', '--allow-empty', '-m', 'unsigned, with a trusted-looking author');
   check('no exemption by author', false, 'signature status N');
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 if (failures.length) { console.error(failures.join('\n')); console.error(`FAILED (${failures.length})`); process.exit(1); }
-console.log('OK (8 signature check cases)');
+console.log('OK (9 signature check cases)');
