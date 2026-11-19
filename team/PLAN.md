@@ -19,7 +19,8 @@ Proposal by conductor.evals@AgentiCCells.dinis, 2026-11-19. Not yet agreed with 
 - An eval page (round 2, on openrouter-evals first) where the visitor picks a provider, pastes its key (memory or the encrypted store), picks a policy and a suite, and runs it in their own browser. Results export as JSON with the key redacted. Nothing goes to us.
 - The page lists only providers whose hosts are in its CSP. A second provider's page comes with its own site, once Dinis has chosen the domain.
 
+## Decided
+- Remembered keys stay tied to the browser profile (Dinis, 2026-11-19: "I think it is ok to have it connected to the browser profile"). No passphrase or WebAuthn PRF layer is planned.
+
 ## Still open with Dinis
-- Push access for this session (git push is refused with 403).
-- Real protection at rest for remembered keys: a passphrase-derived key or a WebAuthn PRF.
 - The second provider: when it may be named, its domain, and the environment variable for its key.

@@ -18,8 +18,8 @@
 // key's bytes in the profile's IndexedDB files, so whoever copies the profile (a backup, a synced
 // profile, a disk image) can recover it and decrypt. Code running on this origin (for example an XSS)
 // can also ask the browser to decrypt, which is why every page carries a strict CSP and loads no
-// third-party script. Real protection at rest needs a key derived from something not on disk (a
-// passphrase, or a WebAuthn PRF): a proposal for a later version, not built here.
+// third-party script. Dinis Cruz, 2026-11-19: "I think it is ok to have it connected to the browser
+// profile", so no passphrase or WebAuthn PRF layer is added.
 
 const DB = 'agenticcells-evals-vault';
 const STORE = 'vault';

@@ -11,6 +11,7 @@ Dinis Cruz's words, with the times they were given and who relayed them. The two
 - 2026-11-18, about 22:55 UTC, relayed by cells.b@: "give it the go for its first conductor"
 - 2026-11-19, about 01:10 UTC, relayed by cells.b@ (signed commits): "every single agent that runs in here should have published its public key on the repo that it maintains ... every then commit is signed by that key ... you should also include the session ID"
 - 2026-11-19, about 02:45 UTC, to this session directly: "This access should exist now and yes visitors can keep they key in their browser storage, although ideally this is done using a PKI key , created using web crypto and with the private key never exposed, with that key (and other secrets )stored in an encrypted format"
+- 2026-11-19, about 03:20 UTC, to this session directly, on keys being recoverable from a copied browser profile: "I think it is ok to have it connected to the browser profile"
 
 ## What to build (as relayed by cells@, 2026-11-18)
 Real, usable, 100% client-side playgrounds and evals for AI model providers, with Agent Behaviour Policies (ABPs) at the centre: every playground runs under a chosen policy, and the eval runner tests one policy across many models (pass/fail, tokens, cost, time).
