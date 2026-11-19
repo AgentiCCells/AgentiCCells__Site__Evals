@@ -92,4 +92,4 @@ try {
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 if (failures.length) { console.error(failures.join('\n')); console.error(`FAILED (${failures.length})`); process.exit(1); }
-console.log('OK (11 signature check cases)');
+console.log('OK (12 signature check cases)');

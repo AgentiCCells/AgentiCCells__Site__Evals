@@ -18,6 +18,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       deploy: ${{ steps.mode.outputs.deploy }}
@@ -41,37 +44,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Take the security checks from BEFORE (fail closed)
-        # security@'s third ruling (2026-11-19, relayed by cells.b@): every security check (trailers,
-        # signatures, leak scan, and the config they read) runs from BEFORE, the commit dev pointed to
-        # before this push, which was itself checked. Fail if BEFORE is missing or zero, is not an ancestor
-        # of AFTER (a force push), or has no copy of a check; never fall back to another copy. Commits are
-        # checked from the last release tag that is an ancestor of BEFORE (so a dropped run is covered),
-        # or from BEFORE. Nothing from the environment can override BEFORE. Tested by
-        # scripts/test-ci-trusted.mjs, which runs this step's script.
+      - name: Take the security checks from anchor A (fail closed)
+        # security@'s fourth ruling (2026-11-19, relayed by cells.b@): anchor A is the newest commit a
+        # passing run verified, read from a record a pusher cannot write: the sha of the last successful
+        # github-pages deployment, from the deployments API with this run's own token. Tags are not used.
+        # A must be an ancestor of AFTER. Every commit in A..AFTER is checked (so commits from dropped runs
+        # are covered), with every check and its config taken from A's tree. Fail if A, or a check at A,
+        # is missing. Tested by scripts/test-ci-trusted.mjs, which runs this step's script.
         env:
-          BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -eu
           fail() { echo "trusted checks: $*" >&2; exit 1; }
-          case "${BEFORE:-}" in ''|*[!0-9a-f]*) fail "no BEFORE commit (a new branch or a manual run): refused";; esac
-          echo "$BEFORE" | grep -Eqv '^0+$' || fail "BEFORE is zero: refused"
-          git rev-parse --verify --quiet "$BEFORE^{commit}" >/dev/null || fail "BEFORE $BEFORE is not in this history"
-          git merge-base --is-ancestor "$BEFORE" "$AFTER" || fail "BEFORE is not an ancestor of AFTER (a force push): refused"
-          start=$(git describe --tags --abbrev=0 --match "v${VERSION_BASE}.*" "$BEFORE" 2>/dev/null || true)
-          if [ -n "$start" ]; then git merge-base --is-ancestor "$start" "$BEFORE" || start=""; fi
-          start=$(git rev-parse "${start:-$BEFORE}")
+          api() { curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/$1"; }
+          deps=$(api "deployments?environment=github-pages&per_page=30") || fail "cannot read the deployments: refused"
+          A=""
+          for line in $(printf '%s' "$deps" | jq -r '.[] | "\(.id):\(.sha)"'); do
+            state=$(api "deployments/${line%%:*}/statuses?per_page=1" | jq -r '.[0].state // ""') || fail "cannot read a deployment status: refused"
+            if [ "$state" = "success" ]; then A="${line#*:}"; break; fi
+          done
+          [ -n "$A" ] || fail "no successful github-pages deployment to anchor on: refused"
+          git rev-parse --verify --quiet "$A^{commit}" >/dev/null || fail "anchor A $A is not in this history: refused"
+          git merge-base --is-ancestor "$A" "$AFTER" || fail "anchor A is not an ancestor of AFTER: refused"
           trusted="${RUNNER_TEMP}/trusted"; mkdir -p "$trusted" .ci-trusted
           for f in check-commits.mjs check-signatures.mjs; do
-            git show "$BEFORE:scripts/$f" > "$trusted/$f" 2>/dev/null || fail "no $f at BEFORE: refused"
+            git show "$A:scripts/$f" > "$trusted/$f" 2>/dev/null || fail "no $f at anchor A: refused"
           done
           # The leak scan finds the repository from its own path (its parent directory), so it sits one level down.
-          git show "$BEFORE:scripts/leak-scan.mjs" > .ci-trusted/leak-scan.mjs 2>/dev/null || fail "no leak-scan.mjs at BEFORE: refused"
-          echo "TRUSTED_START=$start" >> "$GITHUB_ENV"
-      - name: Every commit since the start carries an Agent trailer (copy from BEFORE)
+          git show "$A:scripts/leak-scan.mjs" > .ci-trusted/leak-scan.mjs 2>/dev/null || fail "no leak-scan.mjs at anchor A: refused"
+          echo "TRUSTED_START=$(git rev-parse "$A")" >> "$GITHUB_ENV"
+      - name: Every commit since the start carries an Agent trailer (copy from A)
         run: node "$RUNNER_TEMP/trusted/check-commits.mjs" "$TRUSTED_START" "$GITHUB_SHA"
-      - name: Every commit since the start is signed by a key in its parent's team/keys.json (copy from BEFORE)
+      - name: Every commit since the start is signed by a key in its parent's team/keys.json (copy from A)
         run: node "$RUNNER_TEMP/trusted/check-signatures.mjs" "$TRUSTED_START" "$GITHUB_SHA"
       - name: Self-tests of the checks in this push
         run: |
@@ -84,7 +89,7 @@ jobs:
       - run: node scripts/validate.mjs
       - name: Core tests
         run: node scripts/test-core.mjs
-      - name: Leak scan of tracked files and the built site (copy from BEFORE)
+      - name: Leak scan of tracked files and the built site (copy from A)
         run: node .ci-trusted/leak-scan.mjs
       - if: steps.mode.outputs.deploy == 'true'
         uses: actions/configure-pages@v5
