@@ -27,3 +27,4 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 
 ## Earlier
 - team/DEBRIEF.md and team/NEXT-BRIEFING.md (2026-11-18): the first conductor session stopped before round 1; how to resume.
+- team/HANDOVER.md (2026-11-19): the state at the end of the second session, holding for Dinis.
