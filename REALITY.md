@@ -4,7 +4,7 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 
 ## Repository and site
 - Seeded by the AgentiCCells site factory on 2026-11-18 from AgentiCCells/AgentiCCells__Site__Template@dev. Live at https://evals.agenticcells.site; CI deploys every push to dev and tags v0.1.N.
-- Round 1 (2026-11-18, second account): the hub and core v0.1. See team/rounds/1.md for what was tested live and what against recorded mocks.
+- Round 1 (2026-11-18 and 19, second account): the hub and core v0.1, live as v0.1.3 (commit db111a8) since 2026-11-19. See team/rounds/1.md for what was tested live and what against recorded mocks.
 
 ## What exists after round 1
 - Core v0.1 under src/core/v0.1/ (served at /core/v0.1/): abp.js, agent.js, eval.js, providers/openrouter.js, providers/openai-compatible.js (any OpenAI-compatible provider; mocks only), providers/mock.js, tools/promptugal.js, cost.js, keys.js, vault.js (encrypted secret store), ui.js, ui.css, index.js, README.md (the contract), and in-browser tests (tests/, 22 tests; also run in Node by scripts/test-core.mjs, which the release script and CI now run).
@@ -13,7 +13,7 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 - team/: BRIEF.md, WORKFLOW.md, roles/<role>/ROLE.md and POLICY.md for conductor, architect, developer, designer, writer, security, reviewer; keys.json (the conductor's public key bundle, active); rounds/1.md.
 
 ## What does not exist yet
-- openrouter-evals.agenticcells.site content: the provider site is planned for round 2. That repository is not attached to this session.
+- openrouter-evals.agenticcells.site content: the provider site is planned for round 2. That repository is not yet attached to this session.
 - Five designs under /d/ with a chooser: planned for a later round.
 - OAuth PKCE sign-in in a page: the core has the helpers (keys.js pkcePair, openrouter.js authUrl and exchangeCode, tested against the documented shape with mocks); no page uses them yet and they have not been tried live.
 - Web search, image generation and side by side: not built.
