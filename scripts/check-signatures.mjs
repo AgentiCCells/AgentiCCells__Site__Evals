@@ -63,7 +63,7 @@ try {
     const subject = git('log', '-1', '--format=%s', c);
     const s = signersFile(c);
     if (s.error) { errors.push(`${c.slice(0, 7)} ${subject}: ${s.error}`); continue; }
-    const status = git('-c', `gpg.ssh.allowedSignersFile=${s.file}`, 'log', '-1', '--format=%G?', c);
+    const status = git('-c', 'gpg.ssh.program=ssh-keygen', '-c', `gpg.ssh.allowedSignersFile=${s.file}`, 'log', '-1', '--format=%G?', c);
     if (status !== 'G') errors.push(`${c.slice(0, 7)} ${subject}: signature status ${status} (want G: a good signature by a key in its parent's team/keys.json)`);
   }
 } finally { rmSync(dir, { recursive: true, force: true }); }

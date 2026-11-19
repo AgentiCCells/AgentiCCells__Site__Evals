@@ -12,6 +12,7 @@ node scripts/validate.mjs
 node scripts/test-core.mjs
 node scripts/leak-scan.mjs
 node scripts/check-commits.mjs origin/dev HEAD
+node scripts/test-signatures.mjs
 node scripts/check-signatures.mjs origin/dev HEAD
 for i in 1 2 3 4 5; do
   git fetch -q origin dev
