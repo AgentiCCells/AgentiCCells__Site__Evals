@@ -1,31 +1,43 @@
 // Key and sign-in helpers, core v0.1. Code Apache-2.0.
 //
 // A visitor's key stays in their browser. By default it lives in memory only and is gone when the
-// tab closes. It goes to localStorage only when the visitor chooses "remember", and forget() wipes
-// both. The key is never logged, never put in a URL and never sent anywhere but the provider.
-// OpenRouter's own guidance (docs, OAuth PKCE, "Step 3") is not to persist keys in browser
-// storage at all; pages must show that warning next to the "remember" choice.
+// tab closes. When the visitor chooses "remember", it is kept encrypted in the vault (vault.js: a
+// Web Crypto key pair whose private key cannot be exported, IndexedDB), never in plain text, and
+// forget() wipes it. Dinis Cruz, 2026-11-19: visitors may keep their key in browser storage, ideally
+// encrypted under a Web Crypto key whose private key is never exposed. The key is never logged,
+// never put in a URL and never sent anywhere but the provider.
 
-export function createKeyStore({ name, storage = globalThis.localStorage } = {}) {
+const LEGACY = (name) => `agenticcells.evals.key.${name}`; // plain-text slot of an earlier draft; removed on load
+
+export function createKeyStore({ name, vault = null, legacyStorage = globalThis.localStorage } = {}) {
   if (!name || !/^[a-z0-9-]+$/.test(name)) throw new Error('key store needs a name of a-z, 0-9 and -');
-  const slot = `agenticcells.evals.key.${name}`;
-  let mem = null;
-  const read = () => { try { return storage?.getItem(slot) || null; } catch { return null; } };
+  const slot = `key.${name}`;
+  let mem = null, remembered = false;
   const store = {
-    get() { return mem || read(); },
-    has() { return !!store.get(); },
-    remembered() { return !!read(); },
-    set(key, { remember = false } = {}) {
+    get() { return mem; },
+    has() { return !!mem; },
+    remembered() { return remembered; },
+    canRemember() { return !!vault; },
+    // Read a remembered key from the vault into memory. Call once when the page starts.
+    async load() {
+      try { legacyStorage?.removeItem(LEGACY(name)); } catch { /* storage blocked */ }
+      if (!vault) return false;
+      const k = await vault.get(slot);
+      if (k) { mem = k; remembered = true; }
+      return !!k;
+    },
+    async set(key, { remember = false } = {}) {
       const k = String(key || '').trim();
       if (!k) throw new Error('empty key');
+      if (remember && !vault) throw new Error('this page has no encrypted store; the key is kept in memory only');
       mem = k;
-      if (remember) { try { storage?.setItem(slot, k); } catch { /* storage blocked: memory only */ } }
-      else { try { storage?.removeItem(slot); } catch { /* ignore */ } }
+      if (remember) { await vault.set(slot, k); remembered = true; }
+      else if (vault) { await vault.remove(slot); remembered = false; }
     },
-    forget() { mem = null; try { storage?.removeItem(slot); } catch { /* ignore */ } },
-    masked() { return mask(store.get()); },
-    toString() { return `[key store ${name}: ${store.has() ? 'a key is set' : 'empty'}]`; },
-    toJSON() { return { name, hasKey: store.has(), remembered: store.remembered() }; },
+    async forget() { mem = null; remembered = false; if (vault) await vault.remove(slot); },
+    masked() { return mask(mem); },
+    toString() { return `[key store ${name}: ${mem ? 'a key is set' : 'empty'}]`; },
+    toJSON() { return { name, hasKey: !!mem, remembered }; },
   };
   return store;
 }

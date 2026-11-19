@@ -3,7 +3,10 @@ import * as core from '/core/v0.1/index.js';
 import { el, renderTrace, renderVerdict, keyPanel } from '/core/v0.1/ui.js';
 
 const $ = (id) => document.getElementById(id);
-const store = core.createKeyStore({ name: 'openrouter' });
+let vault = null;
+try { vault = core.createVault(); } catch { /* no IndexedDB: memory only */ }
+const store = core.createKeyStore({ name: 'openrouter', vault });
+try { await store.load(); } catch { /* vault unreadable: memory only */ }
 const live = core.createOpenRouter({ getKey: () => store.get() });
 const index = await (await fetch('/policies/index.json')).json();
 const fixture = await (await fetch('/core/v0.1/tests/fixtures/openrouter-tool-loop.json')).json();
@@ -24,7 +27,7 @@ async function loadModels() {
 }
 
 $('keys').append(keyPanel({ store, label: 'OpenRouter key', onChange: loadModels,
-  warning: 'Your key stays in this browser and is sent only to openrouter.ai. In memory by default. OpenRouter advises against keeping keys in browser storage; tick "remember" only on a device you trust, and prefer a key with a low credit limit. Free models cost nothing.' }));
+  warning: 'Your key stays in this browser and is sent only to openrouter.ai. In memory by default. If you tick "remember", it is kept encrypted: a key pair made by your browser, whose private key cannot be exported, protects it, and nothing is stored in plain text. Code on this site could still use it, so prefer a key with a low credit limit. Free models cost nothing.' }));
 loadModels();
 
 $('run').addEventListener('click', async () => {

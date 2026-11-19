@@ -3,6 +3,7 @@
 export const CORE_VERSION = '0.1';
 export * from './abp.js';
 export * from './keys.js';
+export { createVault, indexedDbBackend, memoryBackend } from './vault.js';
 export * from './cost.js';
 export { runAgent } from './agent.js';
 export { runEval, summarise, exportRun } from './eval.js';

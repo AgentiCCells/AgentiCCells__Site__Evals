@@ -7,7 +7,7 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 - Round 1 (2026-11-18, second account): the hub and core v0.1. See team/rounds/1.md for what was tested live and what against recorded mocks.
 
 ## What exists after round 1
-- Core v0.1 under src/core/v0.1/ (served at /core/v0.1/): abp.js, agent.js, eval.js, providers/openrouter.js, providers/mock.js, tools/promptugal.js, cost.js, keys.js, ui.js, ui.css, index.js, README.md (the contract), and in-browser tests (tests/, 20 tests; also run in Node by scripts/test-core.mjs, which the release script and CI now run).
+- Core v0.1 under src/core/v0.1/ (served at /core/v0.1/): abp.js, agent.js, eval.js, providers/openrouter.js, providers/mock.js, tools/promptugal.js, cost.js, keys.js, vault.js (encrypted secret store), ui.js, ui.css, index.js, README.md (the contract), and in-browser tests (tests/, 21 tests; also run in Node by scripts/test-core.mjs, which the release script and CI now run).
 - Policy library under src/policies/: seven team policies and two playground policies, ABP format 0.1.
 - Hub pages: /, /core/, /policies/, /try/ (one run under a policy, recorded or live with the visitor's own OpenRouter key), /behind-the-scenes/ (built from team/ and git log), /llms.txt, /index.md, /share-card.png (1200x630). A meta CSP on every page.
 - team/: BRIEF.md, WORKFLOW.md, roles/<role>/ROLE.md and POLICY.md for conductor, architect, developer, designer, writer, security, reviewer; keys.json (the conductor's public key bundle, active); rounds/1.md.

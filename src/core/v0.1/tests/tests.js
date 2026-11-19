@@ -63,15 +63,40 @@ export async function runTests({ load, policies }) {
     ok(!core.checkOutput(plain, 'fine', { toolCalls: [{ name: 'x' }] }).pass, 'tool use caught');
     ok(core.checkOutput({ checks: [{ id: 'r', kind: 'must_match', value: 'ROUND 1', flags: 'i' }] }, 'round 1 done').pass, 'flags');
   });
-  test('key store: memory by default, remember by choice, forget wipes both', () => {
-    const st = memStorage();
-    const ks = core.createKeyStore({ name: 'test', storage: st });
-    ok(!ks.has()); ks.set(FAKE_KEY); ok(ks.has()); ok(!ks.remembered()); eq(st._m.size, 0, 'nothing stored');
-    ks.set(FAKE_KEY, { remember: true }); ok(ks.remembered());
+  const vaultBackend = () => (globalThis.indexedDB ? core.indexedDbBackend() : core.memoryBackend());
+  test('vault: private key not extractable, nothing stored in plain text, round trip, forget', async () => {
+    const backend = vaultBackend();
+    const v = core.createVault({ backend });
+    await v.destroy();
+    await v.set('key.test', FAKE_KEY);
+    eq(await v.privateKeyExtractable(), false, 'private key extractable');
+    const rec = await backend.get('secret:key.test');
+    ok(rec && rec.ciphertext && rec.wrapped && rec.iv, 'record shape');
+    const bytes = (b) => new TextDecoder().decode(new Uint8Array(b));
+    ok(!bytes(rec.ciphertext).includes(FAKE_KEY.slice(0, 12)) && !JSON.stringify(rec).includes(FAKE_KEY), 'no plain text stored');
+    const pair = await backend.get('keypair');
+    await rejects(crypto.subtle.exportKey('pkcs8', pair.privateKey), null);
+    eq(await core.createVault({ backend }).get('key.test'), FAKE_KEY, 'a new vault on the same storage decrypts');
+    await v.remove('key.test'); eq(await v.get('key.test'), null);
+    await v.set('key.test', 'x'.repeat(5000)); eq((await v.get('key.test')).length, 5000, 'long secrets (hybrid encryption)');
+    await v.destroy(); eq(await backend.get('keypair'), undefined, 'destroy removes the key pair');
+  });
+  test('key store: memory by default, remember encrypted by choice, forget wipes it', async () => {
+    const backend = vaultBackend();
+    const vault = core.createVault({ backend }); await vault.destroy();
+    const legacy = memStorage(); legacy.setItem('agenticcells.evals.key.test', FAKE_KEY);
+    const ks = core.createKeyStore({ name: 'test', vault, legacyStorage: legacy });
+    ok(!(await ks.load()), 'nothing remembered'); eq(legacy._m.size, 0, 'old plain-text slot removed');
+    await ks.set(FAKE_KEY); ok(ks.has() && !ks.remembered()); ok(!(await vault.has('key.test')), 'not stored unless chosen');
+    await ks.set(FAKE_KEY, { remember: true }); ok(ks.remembered() && (await vault.has('key.test')));
+    const again = core.createKeyStore({ name: 'test', vault, legacyStorage: memStorage() });
+    ok(await again.load()); eq(again.get(), FAKE_KEY, 'reloaded after a restart');
     ok(!String(ks).includes(FAKE_KEY) && !JSON.stringify(ks).includes(FAKE_KEY), 'never in toString or JSON');
     ok(!ks.masked().includes(FAKE_KEY.slice(5, 20)), 'masked');
-    ks.forget(); ok(!ks.has()); eq(st._m.size, 0, 'storage wiped');
+    await ks.forget(); ok(!ks.has()); ok(!(await vault.has('key.test')), 'vault entry wiped');
+    await rejects(core.createKeyStore({ name: 'nov' }).set(FAKE_KEY, { remember: true }), /memory only/);
     eq(core.redact(`bad ${FAKE_KEY} here`, [FAKE_KEY]), 'bad [redacted] here');
+    await vault.destroy();
   });
   test('PKCE pair: S256 challenge of the verifier, base64url', async () => {
     const { verifier, challenge } = await core.pkcePair();

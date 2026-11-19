@@ -48,17 +48,18 @@ export function renderVerdict(verdict) {
 }
 
 // A key panel: paste a key, choose whether to remember it, forget it. Optional sign-in button.
+// Call after store.load() so a remembered key shows as set.
 export function keyPanel({ store, label = 'API key', onChange, signIn, warning }) {
   const input = el('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'Paste a key', 'aria-label': label });
   const remember = el('input', { type: 'checkbox' });
   const status = el('span', { class: 'acc-muted', 'aria-live': 'polite' });
-  const show = () => { status.textContent = store.has() ? `Key set (${store.masked()})${store.remembered() ? ', remembered in this browser' : ', in memory only'}` : 'No key set'; };
-  const use = el('button', { type: 'button', onclick: () => { try { store.set(input.value, { remember: remember.checked }); input.value = ''; show(); onChange?.(); } catch (e) { status.textContent = e.message; } } }, 'Use key');
-  const forget = el('button', { type: 'button', onclick: () => { store.forget(); show(); onChange?.(); } }, 'Forget key');
+  const show = () => { status.textContent = store.has() ? `Key set (${store.masked()})${store.remembered() ? ', remembered in this browser, encrypted' : ', in memory only'}` : 'No key set'; remember.checked = store.remembered(); };
+  const use = el('button', { type: 'button', onclick: async () => { try { await store.set(input.value, { remember: remember.checked }); input.value = ''; show(); onChange?.(); } catch (e) { status.textContent = e.message; } } }, 'Use key');
+  const forget = el('button', { type: 'button', onclick: async () => { try { await store.forget(); } catch (e) { status.textContent = e.message; } show(); onChange?.(); } }, 'Forget key');
   show();
   return el('div', { class: 'acc-keys' },
     el('label', {}, label, ' ', input), use, forget,
-    el('label', {}, remember, ' Remember in this browser'),
+    store.canRemember?.() ? el('label', {}, remember, ' Remember in this browser (encrypted)') : null,
     warning ? el('p', { class: 'acc-muted' }, warning) : null,
     signIn ? el('button', { type: 'button', onclick: signIn }, 'Sign in') : null,
     el('p', {}, status));
