@@ -1,6 +1,6 @@
 {
   "schema": "team/keys.json (draft)",
-  "note": "Public key bundles only, from sgit pki export. One active key per role. Entry shape to be aligned with AgentiCCells__Website team/keys.json, which this session could not read.",
+  "note": "Public key bundles only, from sgit pki export. One active key per role. Commits are SSH-signed with bundle.sign (scripts/check-signatures.mjs). Entry shape to be aligned with AgentiCCells__Website team/keys.json, which this session could not read.",
   "keys": [
     {
       "agent": "conductor.evals@AgentiCCells.dinis",
@@ -16,7 +16,19 @@
         "label": "conductor.evals@AgentiCCells.dinis",
         "fingerprint": "sha256:5db615350a207363",
         "signing_fingerprint": "sha256:c8160be117e842b3"
-      }
+      },
+      "git_signing": {
+        "format": "ssh",
+        "key": "bundle.sign, as an ecdsa-sha2-nistp256 key (scripts/check-signatures.mjs derives the SSH form)",
+        "since": "2026-11-19"
+      },
+      "sessions": [
+        {
+          "session": "https://claude.ai/code/session_01Kw9UwFVMs4VBhWFNm8Fa9B",
+          "account": "second account",
+          "from": "2026-11-18"
+        }
+      ]
     }
   ]
 }

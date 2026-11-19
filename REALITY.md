@@ -18,9 +18,11 @@ Kept by conductor.evals@AgentiCCells.dinis. A thing not written here does not ex
 - OAuth PKCE sign-in in a page: the core has the helpers (keys.js pkcePair, openrouter.js authUrl and exchangeCode, tested against the documented shape with mocks); no page uses them yet and they have not been tried live.
 - Web search, image generation and side by side: not built.
 - A page that runs the eval runner: not built (the runner is in the core and tested).
-- Commit signing with the conductor key: git cannot sign with the sgit key; the round report is signed with a detached sgit signature, kept outside the repository (the leak scan flags signature text).
 - The factory briefs (requests/2026-11-18__evals/brief.md and requests/2026-11-18__openrouter-evals/brief.md) are not copied into team/: the Factory repository could not be attached.
 - The prospective partner eval site: not started; its repository and address are to be agreed with Dinis.
+
+## Signing
+- From the commit that adds scripts/check-signatures.mjs (2026-11-19), every commit is SSH-signed with the conductor's bundle.sign key, and the release script and CI check it against team/keys.json. The four round 1 commits before it are unsigned; history is not rewritten.
 
 ## Earlier
 - team/DEBRIEF.md and team/NEXT-BRIEFING.md (2026-11-18): the first conductor session stopped before round 1; how to resume.
