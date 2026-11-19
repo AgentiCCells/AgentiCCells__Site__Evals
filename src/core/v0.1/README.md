@@ -17,7 +17,7 @@ A provider is an object with:
 
 Messages use the OpenAI-compatible shape (`system`, `user`, `assistant` with `tool_calls`, `tool` with `tool_call_id`). Tools are `{ name, description, parameters (JSON Schema), run(args) }`; `run` returns text.
 
-Adapters in v0.1: `providers/openrouter.js` (checked against OpenRouter's documentation on 18 November 2026; see the comment at its top) and `providers/mock.js` (replays recorded replies).
+Adapters in v0.1: `providers/openai-compatible.js` (`createOpenAICompatible({ id, name, baseUrl, getKey, keyHeader, keyPrefix, modelsPath })`, for any OpenAI-compatible Chat Completions API over https; a page using it must add the provider's host to its CSP connect-src; tested with mocks only), `providers/openrouter.js` (checked against OpenRouter's documentation on 18 November 2026; see the comment at its top) and `providers/mock.js` (replays recorded replies).
 
 ## ABP format 0.1
 An Agent Behaviour Policy is a JSON object:

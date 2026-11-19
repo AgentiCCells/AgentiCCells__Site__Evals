@@ -79,7 +79,7 @@ export function normaliseReply(j, ms = 0) {
 }
 
 // Error bodies can carry account identifiers (user_id) and raw upstream text. Keep only what helps.
-function errorFrom(status, body, key) {
+export function errorFrom(status, body, key) {
   const e = body?.error || {};
   const md = e.metadata || {};
   const msg = redact(e.message || `HTTP ${status}`, [key]);

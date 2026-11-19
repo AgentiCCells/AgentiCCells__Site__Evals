@@ -123,6 +123,19 @@ export async function runTests({ load, policies }) {
     ok(ms[0].free, 'free first'); ok(ms.some((m) => !m.free), 'paid listed after'); eq(auth, undefined, 'no key on the public models call');
     ok(ms.find((m) => m.id === 'nvidia/nemotron-3.5-lightning:free').tools);
   });
+  test('OpenAI-compatible adapter: base URL, key header, tools, errors', async () => {
+    await rejects((async () => core.createOpenAICompatible({ id: 'p', name: 'P', baseUrl: 'http://example.invalid/v1' }))(), /https/);
+    const seen = [];
+    const p = core.createOpenAICompatible({ id: 'second', name: 'Second provider', baseUrl: 'https://api.example.invalid/v1/', getKey: () => FAKE_KEY, keyHeader: 'X-Api-Key', keyPrefix: '',
+      fetchImpl: async (u, o) => { seen.push({ u, o }); return u.endsWith('/models') ? jsonResponse(200, { data: fx.models.data }) : jsonResponse(200, fx.loop.replies[0].body); } });
+    const r = await p.chat({ model: 'm', messages: [{ role: 'user', content: 'x' }], tools: mockTools() });
+    eq(seen[0].u, 'https://api.example.invalid/v1/chat/completions'); eq(seen[0].o.headers['X-Api-Key'], FAKE_KEY); eq(seen[0].o.headers.Authorization, undefined);
+    eq(JSON.parse(seen[0].o.body).tools[0].type, 'function'); eq(r.toolCalls[0].name, 'list_sources'); eq(seen[0].o.redirect, 'error');
+    ok((await p.listModels())[0].free, 'models normalised, free first');
+    const bad = core.createOpenAICompatible({ id: 'b', name: 'B', baseUrl: 'https://api.example.invalid/v1', getKey: () => FAKE_KEY, fetchImpl: async () => jsonResponse(429, fx.e429.body) });
+    try { await bad.chat({ model: 'm', messages: [] }); throw new Error('no error'); } catch (e) { eq(e.status, 429); ok(!e.message.includes(FAKE_KEY)); }
+    await rejects(core.createOpenAICompatible({ id: 'n', name: 'N', baseUrl: 'https://a.example.invalid', getKey: () => null }).chat({ model: 'm', messages: [] }), /no N key/);
+  });
   test('OpenRouter 429: a clear error with no account id and no key', async () => {
     const or = core.createOpenRouter({ getKey: () => FAKE_KEY, fetchImpl: async () => jsonResponse(429, { ...fx.e429.body, user_id: 'user_x' }) });
     try { await or.chat({ model: 'm', messages: [] }); throw new Error('no error'); }

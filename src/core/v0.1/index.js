@@ -9,4 +9,5 @@ export { runAgent } from './agent.js';
 export { runEval, summarise, exportRun } from './eval.js';
 export { createOpenRouter, ProviderError, FREE_ROUTER, isFree, normaliseModel, normaliseReply, sortModels } from './providers/openrouter.js';
 export { createMockProvider } from './providers/mock.js';
+export { createOpenAICompatible } from './providers/openai-compatible.js';
 export { promptugalTools, shrink, DATA_HOST } from './tools/promptugal.js';
